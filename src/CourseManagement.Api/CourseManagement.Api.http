@@ -1,0 +1,18 @@
+@CourseManagement.Api_HostAddress = https://localhost:7063
+@CourseManagement.Api_Http_HostAddress = http://localhost:5104
+
+POST {{CourseManagement.Api_HostAddress}}/Users/Login
+Accept: application/json
+Content-Type: application/json
+{
+  "email": "aya@gmail.com",
+  "password": "Real Madrid"
+}
+
+###
+
+GET {{CourseManagement.Api_HostAddress}}/Users/
+Accept: application/json
+Authorization: Bearer token
+
+###

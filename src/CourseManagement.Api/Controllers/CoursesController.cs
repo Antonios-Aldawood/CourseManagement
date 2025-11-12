@@ -1,0 +1,410 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using CourseManagement.Contracts.Courses;
+using CourseManagement.Application.Courses.Commands.CreateCourse;
+using CourseManagement.Application.Courses.Queries.GetCourse;
+using CourseManagement.Application.Courses.Queries.GetAllCourses;
+using CourseManagement.Application.Courses.Commands.AddCourseEligibility;
+using CourseManagement.Application.Courses.Queries.GetCourseEligibilities;
+using CourseManagement.Application.Courses.Commands.UpdateCourse;
+using CourseManagement.Application.Courses.Queries.GetRecommendedCourses;
+using CourseManagement.Application.Courses.Commands.AddCourseSession;
+using CourseManagement.Application.Courses.Queries.GetCourseSessions;
+using CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities;
+
+namespace CourseManagement.Api.Controllers
+{
+    [Route("[controller]")]
+    public class CoursesController(ISender _mediator) : ApiController
+    {
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> AddCourse([FromBody] CreateCourseRequest request)
+        {
+            request.Eligibility.Subject = request.Subject;
+
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            List<(string, int, int)> addedSkills = [];
+
+            if (request.Skills != null)
+            {
+                foreach (var skill in request.Skills)
+                {
+                    (string, int, int) addedSkill = (skill.SkillName, skill.LevelCap, skill.Weight);
+
+                    addedSkills.Add(addedSkill);
+                }
+            }
+            
+            var command = new CreateCourseCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                subject: request.Subject,
+                description: request.Description,
+                position: request.Eligibility.Position,
+                positionIds: request.Eligibility.PositionIds,
+                department: request.Eligibility.Department,
+                departmentIds: request.Eligibility.DepartmentIds,
+                job: request.Eligibility.Job,
+                jobIds: request.Eligibility.JobIds,
+                newSkills: addedSkills);
+
+            var addCourseResult = await _mediator.Send(command);
+
+            return addCourseResult.Match(
+                course => CreatedAtAction(
+                    nameof(GetCourse),
+                    new CourseResponse(
+                        CourseId: course.CourseId,
+                        Subject: course.Subject,
+                        Description: course.Description)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPut]
+        public async Task<IActionResult> EditCourse(EditCourseRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new UpdateCourseCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                oldCourseSubject: request.OldSubject,
+                subject: request.Subject,
+                description: request.Description);
+
+            var updateCourseResult = await _mediator.Send(command);
+
+            return updateCourseResult.Match(
+                course => CreatedAtAction(
+                    nameof(GetCourse),
+                    new CourseResponse(
+                        CourseId: course.CourseId,
+                        Subject: course.Subject,
+                        Description: course.Description)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Course")]
+        public async Task<IActionResult> GetCourse(string Subject)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+            
+            var query = new GetCourseQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                subject: Subject);
+
+            var getCourseResult = await _mediator.Send(query);
+
+            return getCourseResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Paginated")]
+        public async Task<IActionResult> ListPaginatedCourses([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+            
+            var query = new PaginatedGetAllCoursesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                pageNumber: pageNumber,
+                pageSize: pageSize);
+
+            var getAllCoursesResult = await _mediator.Send(query);
+
+            return getAllCoursesResult.Match(
+                paged => Ok(new
+                {
+                    paged.PageNumber,
+                    paged.PageSize,
+                    paged.TotalCount,
+                    paged.TotalPages,
+                    Items = paged.Items.Select(c => new CourseResponse(
+                        CourseId: c.CourseId,
+                        Subject: c.Subject,
+                        Description: c.Description
+                    ))
+                }),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ListCourses()
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetAllCoursesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary);
+
+            var getCourseResult = await _mediator.Send(query);
+
+            return getCourseResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPut("Eligibility")] 
+        public async Task<IActionResult> AddCourseEligibilities([FromBody] AddCourseEligibilityRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new AddCourseEligibilityCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                courseSubject: request.Subject,
+                position: request.Position,
+                positionIds: request.PositionIds,
+                department: request.Department,
+                departmentIds: request.DepartmentIds,
+                job: request.Job,
+                jobIds: request.JobIds);
+
+            var addCourseEligibilityResult = await _mediator.Send(command);
+
+            return addCourseEligibilityResult.Match(
+                eligibilities => CreatedAtAction(
+                    nameof(GetCourseEligibilities),
+                    eligibilities.ConvertAll(
+                        eligibility => new EligibilityResponse(
+                            EligibilityId: eligibility.EligibilityId,
+                            Course: eligibility.Course,
+                            Key: eligibility.Key,
+                            Value: eligibility.Value))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Eligibilities")]
+        public async Task<IActionResult> GetCourseEligibilities(string Subject)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+            
+            var query = new GetCourseEligibilitiesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                subject: Subject);
+
+            var getCourseEligibilitiesResult = await _mediator.Send(query);
+
+            return getCourseEligibilitiesResult.Match(
+                eligibilities => Ok(
+                    eligibilities.ConvertAll(
+                        eligibility => new EligibilityValuesResponse(
+                            EligibilityId: eligibility.EligibilityId,
+                            Course: eligibility.Course,
+                            Key: eligibility.Key,
+                            Value: eligibility.Value))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Recommendation")]
+        public async Task<IActionResult> SeeRecommendedCourses(string Alias)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetRecommendedCoursesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                alias: Alias);
+
+            var recommendedCoursesResult = await _mediator.Send(query);
+
+            return recommendedCoursesResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPost("Session")]
+        public async Task<IActionResult> AddCourseSession(AddCourseSessionRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new AddCourseSessionCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                sessionName: request.Name,
+                subject: request.Subject,
+                startDate: request.StartDate,
+                endDate: request.EndDate,
+                trainerId: request.TrainerId,
+                isOffline: request.IsOffline,
+                seats: request.Seats,
+                link: request.Link,
+                app: request.App);
+
+            var addCourseSessionResult = await _mediator.Send(command);
+
+            return addCourseSessionResult.Match(
+                session => CreatedAtAction(
+                    nameof(GetCourseSessions),
+                    new SessionResponse(
+                        SessionId: session.SessionId,
+                        SessionName: session.Name,
+                        CourseId: session.CourseId,
+                        CourseSubject: session.CourseSubject,
+                        StartDate: session.StartDate,
+                        EndDate: session.EndDate,
+                        TrainerId: session.TrainerId,
+                        TrainerAlias: session.TrainerAlias,
+                        IsOffline: session.IsOffline,
+                        Seats: session.Seats,
+                        Link: session.Link,
+                        App: session.App)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Sessions")]
+        public async Task<IActionResult> GetCourseSessions(string Subject)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetCourseSessionsQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                subject: Subject);
+
+            var getCourseSessionsResult = await _mediator.Send(query);
+
+            return getCourseSessionsResult.Match(
+                results => Ok(
+                    results.ConvertAll(
+                        result => new SessionResponse(
+                            SessionId: result.CourseSession.Id,
+                            SessionName: result.CourseSession.Name,
+                            CourseId: result.CourseSession.CourseId,
+                            CourseSubject: result.CourseSubject,
+                            StartDate: result.CourseSession.StartDate,
+                            EndDate: result.CourseSession.EndDate,
+                            TrainerId: result.CourseSession.TrainerId,
+                            TrainerAlias: result.TrainerName,
+                            IsOffline: result.CourseSession.IsOffline,
+                            Seats: result.CourseSession.Seats,
+                            Link: result.CourseSession.Link,
+                            App: result.CourseSession.App))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Eligibilities/User")]
+        public async Task<IActionResult> GetUserEligibleCourses(int userId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetCoursesForEligibilitiesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId);
+
+            var getUserEligibilitiesForCourseResult = await _mediator.Send(query);
+
+            return getUserEligibilitiesForCourseResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Eligibilities/Admin/User")]
+        public async Task<IActionResult> AdminGetUserEligibleCourses(int userId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetCoursesForEligibilitiesAdminQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId);
+
+            var getUserEligibilitiesForCourseResult = await _mediator.Send(query);
+
+            return getUserEligibilitiesForCourseResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Eligibilities/User/Subject")]
+        public async Task<IActionResult> SearchUserEligibleCourses([FromQuery] int userId, [FromQuery] string subject)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new SearchCourseForEligibilitiesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId,
+                subject: subject);
+
+            var searchCoursesFromUserEligibleCoursesResult = await _mediator.Send(query);
+
+            return searchCoursesFromUserEligibleCoursesResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Eligibilities/Admin/User/Subject")]
+        public async Task<IActionResult> AdminSearchUserEligibleCourses([FromQuery] int userId, [FromQuery] string subject)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new SearchCourseForEligibilitiesAdminQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId,
+                subject: subject);
+
+            var adminSearchCourseFromUsersEligibleCoursesResult = await _mediator.Send(query);
+
+            return adminSearchCourseFromUsersEligibleCoursesResult.Match(
+                courses => Ok(
+                    courses.ConvertAll(
+                        course => new CourseResponse(
+                            CourseId: course.CourseId,
+                            Subject: course.Subject,
+                            Description: course.Description))),
+                Problem);
+        }
+    }
+}
