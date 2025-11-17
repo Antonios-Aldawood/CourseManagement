@@ -6,6 +6,8 @@ using CourseManagement.Application.Enrollments.Commands.CreateForcedEnrollment;
 using CourseManagement.Application.Enrollments.Commands.CreateOptionalEnrollment;
 using CourseManagement.Application.Enrollments.Queries.GetUserCourses;
 using CourseManagement.Application.Enrollments.Queries.GetCourseUsers;
+using CourseManagement.Application.Enrollments.Queries.GetOptionalEnrollmentsInEligibleCourses;
+using CourseManagement.Application.Enrollments.Queries.GetForcedEnrollmentsInEligibleCourses;
 
 namespace CourseManagement.Api.Controllers
 {
@@ -109,6 +111,60 @@ namespace CourseManagement.Api.Controllers
             var getUserCoursesResult = await _mediator.Send(query);
 
             return getUserCoursesResult.Match(
+                enrollments => Ok(
+                    enrollments.ConvertAll(
+                        enrollment => new EnrollmentResponse(
+                            enrollmentId: enrollment.EnrollmentId,
+                            userId: enrollment.UserId,
+                            userAlias: enrollment.UserAlias,
+                            courseId: enrollment.CourseId,
+                            courseSubject: enrollment.CourseSubject,
+                            isOptional: enrollment.IsOptional,
+                            isCompleted: enrollment.IsCompleted))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("User/Optional")]
+        public async Task<IActionResult> GetOptionalEnrollmentsForUser(int userId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetOptionalEnrollmentsInEligibleCoursesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId);
+
+            var getOptionalEnrollmentsForUserResult = await _mediator.Send(query);
+
+            return getOptionalEnrollmentsForUserResult.Match(
+                enrollments => Ok(
+                    enrollments.ConvertAll(
+                        enrollment => new EnrollmentResponse(
+                            enrollmentId: enrollment.EnrollmentId,
+                            userId: enrollment.UserId,
+                            userAlias: enrollment.UserAlias,
+                            courseId: enrollment.CourseId,
+                            courseSubject: enrollment.CourseSubject,
+                            isOptional: enrollment.IsOptional,
+                            isCompleted: enrollment.IsCompleted))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("User/Forced")]
+        public async Task<IActionResult> GetForcedEnrollmentsForUser(int userId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetForcedEnrollmentsInEligibleCoursesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: userId);
+
+            var getForcedEnrollmentsForUserResult = await _mediator.Send(query);
+
+            return getForcedEnrollmentsForUserResult.Match(
                 enrollments => Ok(
                     enrollments.ConvertAll(
                         enrollment => new EnrollmentResponse(

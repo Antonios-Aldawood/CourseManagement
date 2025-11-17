@@ -45,16 +45,21 @@ namespace CourseManagement.Application.Courses.Commands.CreateCourse
                     subject: command.subject,
                     description: command.description);
 
-                await _coursesRepository.AddCourseAsync(course);
+                if (course.IsError)
+                {
+                    return course.Errors;
+                }
+
+                await _coursesRepository.AddCourseAsync(course.Value);
                 
                 await _unitOfWork.CommitChangesAsync();
 
-                CourseDto dto = CourseDto.AddCourseDto(course);
+                CourseDto dto = CourseDto.AddCourseDto(course.Value);
 
                 var eligibility = new AddCourseEligibilityCommand(
                     ipAddress: command.ipAddress,
                     headers: command.headers,
-                    courseSubject: course.Subject,
+                    courseSubject: course.Value.Subject,
                     position: command.position,
                     positionIds: command.positionIds,
                     department: command.department,
@@ -66,7 +71,7 @@ namespace CourseManagement.Application.Courses.Commands.CreateCourse
 
                 if (eligibilityResult.IsError)
                 {
-                    await _coursesRepository.DeleteCourseAsync(course.Subject);
+                    await _coursesRepository.DeleteCourseAsync(course.Value.Subject);
 
                     return eligibilityResult.Errors;
                 }
@@ -78,7 +83,7 @@ namespace CourseManagement.Application.Courses.Commands.CreateCourse
                     headers: command.headers,
                     skillName: enteredSkill.Item1,
                     levelCap: enteredSkill.Item2,
-                    courseId: course.Id,
+                    courseId: course.Value.Id,
                     weight: enteredSkill.Item3);
 
                     var skillResult = await _mediator.Send(skill);
@@ -90,7 +95,7 @@ namespace CourseManagement.Application.Courses.Commands.CreateCourse
                         var courseSkillCommand = new CreateCourseSkillCommand(
                         ipAddress: command.ipAddress,
                         headers: command.headers,
-                        courseId: course.Id,
+                        courseId: course.Value.Id,
                         skillId: existingSkill!.Id,
                         weight: enteredSkill.Item3);
 
@@ -105,7 +110,7 @@ namespace CourseManagement.Application.Courses.Commands.CreateCourse
                     if (skillResult.IsError &&
                         skillResult.Errors.Any(e => e.Description == "Skill name already taken.") == false)
                     {
-                        await _coursesRepository.DeleteCourseAsync(course.Subject);
+                        await _coursesRepository.DeleteCourseAsync(course.Value.Subject);
 
                         return skillResult.Errors;
                     }

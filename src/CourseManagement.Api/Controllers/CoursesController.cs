@@ -1,17 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using CourseManagement.Contracts.Courses;
-using CourseManagement.Application.Courses.Commands.CreateCourse;
-using CourseManagement.Application.Courses.Queries.GetCourse;
-using CourseManagement.Application.Courses.Queries.GetAllCourses;
-using CourseManagement.Application.Courses.Commands.AddCourseEligibility;
-using CourseManagement.Application.Courses.Queries.GetCourseEligibilities;
-using CourseManagement.Application.Courses.Commands.UpdateCourse;
-using CourseManagement.Application.Courses.Queries.GetRecommendedCourses;
+﻿using CourseManagement.Application.Courses.Commands.AddCourseEligibility;
 using CourseManagement.Application.Courses.Commands.AddCourseSession;
+using CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial;
+using CourseManagement.Application.Courses.Commands.CreateCourse;
+using CourseManagement.Application.Courses.Commands.UpdateCourse;
+using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterial;
+using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterialPlacement;
+using CourseManagement.Application.Courses.Queries.GetAllCourses;
+using CourseManagement.Application.Courses.Queries.GetCourse;
+using CourseManagement.Application.Courses.Queries.GetCourseEligibilities;
 using CourseManagement.Application.Courses.Queries.GetCourseSessions;
 using CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities;
+using CourseManagement.Application.Courses.Queries.GetRecommendedCourses;
+using CourseManagement.Contracts.Courses;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CourseManagement.Api.Controllers
 {
@@ -404,6 +407,131 @@ namespace CourseManagement.Api.Controllers
                             CourseId: course.CourseId,
                             Subject: course.Subject,
                             Description: course.Description))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPost("Session/Material")]
+        public async Task<IActionResult> AddMaterial(AddCourseSessionMaterialRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new AddCourseSessionMaterialCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                courseId: request.CourseId,
+                sessionId: request.SessionId,
+                path: request.Path,
+                isVideo: request.IsVideo);
+
+            var addedCourseSessionMaterialResult = await _mediator.Send(command);
+
+            List<MaterialResponse>? Materials = [];
+
+            if (addedCourseSessionMaterialResult.IsError == false)
+            {
+                addedCourseSessionMaterialResult.Value.Materials.ForEach(m =>
+                    Materials.Add(new MaterialResponse(
+                        MaterialId: m.MaterialId,
+                        Path: m.Path,
+                        IsVideo: m.IsVideo)));
+            }
+
+            return addedCourseSessionMaterialResult.Match(
+                session => CreatedAtAction(
+                    nameof(GetCourseSessions),
+                    new SessionAndMaterialsResponse(
+                        SessionId: session.SessionId,
+                        Name: session.Name,
+                        CourseId: session.CourseId,
+                        StartDate: session.StartDate,
+                        EndDate: session.EndDate,
+                        IsOffline: session.IsOffline,
+                        Materials: Materials)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPut("Session/Material")]
+        public async Task<IActionResult> UpdateMaterial(UpdateCourseSessionMaterialRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new UpdateCourseSessionMaterialCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                courseId: request.CourseId,
+                sessionId: request.SessionId,
+                materialId: request.MaterialId,
+                path: request.Path,
+                isVideo: request.IsVideo);
+
+            var updateCourseSessionMaterialResult = await _mediator.Send(command);
+
+            List<MaterialResponse>? Materials = [];
+
+            if (updateCourseSessionMaterialResult.IsError == false)
+            {
+                updateCourseSessionMaterialResult.Value.Materials.ForEach(m =>
+                    Materials.Add(new MaterialResponse(
+                        MaterialId: m.MaterialId,
+                        Path: m.Path,
+                        IsVideo: m.IsVideo)));
+            }
+
+            return updateCourseSessionMaterialResult.Match(
+                session => CreatedAtAction(
+                    nameof(GetCourseSessions),
+                    new SessionAndMaterialsResponse(
+                        SessionId: session.SessionId,
+                        Name: session.Name,
+                        CourseId: session.CourseId,
+                        StartDate: session.StartDate,
+                        EndDate: session.EndDate,
+                        IsOffline: session.IsOffline,
+                        Materials: Materials)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPut("Session/MaterialPlacement")]
+        public async Task<IActionResult> UpdateMaterialPlacement(UpdateCourseSessionMaterialPlacementRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new UpdateCourseSessionMaterialPlacementCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                oldMaterialId: request.OldMaterialId,
+                oldSessionId: request.OldSessionId,
+                oldCourseId: request.OldCourseId,
+                newMaterialSessionName: request.NewMaterialSessionName,
+                newCourseId: request.NewCourseId);
+
+            var updateCourseSessionMaterialPlacementResult = await _mediator.Send(command);
+
+            List<MaterialResponse>? Materials = [];
+
+            if (updateCourseSessionMaterialPlacementResult.IsError == false)
+            {
+                updateCourseSessionMaterialPlacementResult.Value.Materials.ForEach(m =>
+                    Materials.Add(new MaterialResponse(
+                        MaterialId: m.MaterialId,
+                        Path: m.Path,
+                        IsVideo: m.IsVideo)));
+            }
+
+            return updateCourseSessionMaterialPlacementResult.Match(
+                session => CreatedAtAction(
+                    nameof(GetCourseSessions),
+                    new SessionAndMaterialsResponse(
+                        SessionId: session.SessionId,
+                        Name: session.Name,
+                        CourseId: session.CourseId,
+                        StartDate: session.StartDate,
+                        EndDate: session.EndDate,
+                        IsOffline: session.IsOffline,
+                        Materials: Materials)),
                 Problem);
         }
     }

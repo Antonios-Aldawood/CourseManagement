@@ -306,6 +306,22 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
                           select c).Distinct().ToListAsync();
         }
 
+        public async Task<Course?> GetCourseWithSessionsAndSessionsMaterialsByCourseIdAsync(int courseId)
+        {
+        ///////// Multiplies rows for ever working match in join, and doesn't populate correctly /////////
+            /*
+            return await (from course in _dbContext.Courses
+                          where course.Id == courseId
+                          join session in _dbContext.Sessions on course.Id equals session.CourseId
+                          join material in _dbContext.Materials on session.Id equals material.SessionId
+                          select course).FirstOrDefaultAsync();
+            */
+
+            return await _dbContext.Courses
+                .Include(c => c.Sessions!)
+                    .ThenInclude(s => s.Materials)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+        }
     }
 }
 

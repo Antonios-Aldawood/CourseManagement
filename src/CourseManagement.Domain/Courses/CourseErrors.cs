@@ -9,6 +9,10 @@ namespace CourseManagement.Domain.Courses
 {
     public class CourseErrors
     {
+        public static readonly Error CourseSubjectIsNotValid = Error.Validation(
+            "Course.CourseSubjectIsNotValid",
+            "Course subject should be between 3 and 35 characters long.");
+
         public static readonly Error EligibilityAlreadyGivenToCourse = Error.Validation(
             "Course.EligibilityAlreadyGivenToCourse",
             "Course already has this eligibility.");

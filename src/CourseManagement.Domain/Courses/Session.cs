@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using ErrorOr;
@@ -96,6 +95,11 @@ namespace CourseManagement.Domain.Courses
         {
             if (Materials is not null)
             {
+                if (Materials.Count >= 4)
+                {
+                    return SessionErrors.SessionCanNotHaveMoreThanFourMaterials;
+                }
+
                 foreach (Material material in Materials)
                 {
                     if (material.Path == path &&
@@ -107,6 +111,7 @@ namespace CourseManagement.Domain.Courses
             }
 
             var newMaterial = Material.CreateMaterial(
+                sessionId: Id,
                 path: path,
                 isVideo: isVideo);
 
@@ -118,6 +123,84 @@ namespace CourseManagement.Domain.Courses
             Materials!.Add(newMaterial.Value);
 
             return newMaterial;
+        }
+
+        internal ErrorOr<Material> UpdateSessionMaterial(
+            int materialId,
+            string path,
+            bool isVideo)
+        {
+            Material? oldMaterial = Materials?.FirstOrDefault(m => m.Id == materialId);
+
+            if (oldMaterial == null)
+            {
+                return SessionErrors.SessionMaterialNotFound;
+            }
+
+            if (Materials is not null)
+            {
+                foreach (Material material in Materials)
+                {
+                    if (material.Path == path &&
+                        material.IsVideo == isVideo)
+                    {
+                        return SessionErrors.MaterialAlreadyGivenToSession;
+                    }
+                }
+            }
+
+            var updatedMaterial = oldMaterial.UpdateMaterial(
+                path: path,
+                isVideo: isVideo);
+
+            if (updatedMaterial.IsError)
+            {
+                return updatedMaterial.Errors;
+            }
+
+            return updatedMaterial;
+        }
+
+        internal ErrorOr<Material> UpdateSessionMaterialSessionPlacement(
+            int oldMaterialId,
+            Session newSession)
+        {
+            Material? oldMaterial = Materials?.FirstOrDefault(m => m.Id == oldMaterialId);
+
+            if (oldMaterial == null)
+            {
+                return SessionErrors.SessionMaterialNotFound;
+            }
+
+            if (newSession.Materials != null)
+            {
+                if (newSession.Materials.Count >= 4)
+                {
+                    return SessionErrors.SessionCanNotHaveMoreThanFourMaterials;
+                }
+
+                foreach (Material material in newSession.Materials)
+                {
+                    if (material.Path == oldMaterial.Path &&
+                        material.IsVideo == oldMaterial.IsVideo)
+                    {
+                        return SessionErrors.MaterialAlreadyGivenToSession;
+                    }
+                }
+            }
+
+            var updatedMaterial = oldMaterial.UpdateMaterialSessionPlacement(newSession.Id);
+
+            if (updatedMaterial.IsError)
+            {
+                return updatedMaterial.Errors;
+            }
+
+            newSession.Materials!.Add(updatedMaterial.Value);
+            
+            Materials!.Remove(oldMaterial);
+
+            return updatedMaterial;
         }
 
         internal static ErrorOr<Session> CreateSession(
@@ -151,3 +234,29 @@ namespace CourseManagement.Domain.Courses
         }
     }
 }
+
+/*
+        private ErrorOr<Success> CheckIfMaterialIsDuplicatedOrMoreThanFour(
+            string path,
+            bool isVideo)
+        {
+            if (Materials is not null)
+            {
+                if (Materials.Count >= 4)
+                {
+                    return SessionErrors.SessionCanNotHaveMoreThanFourMaterials;
+                }
+
+                foreach (Material material in Materials)
+                {
+                    if (material.Path == path &&
+                        material.IsVideo == isVideo)
+                    {
+                        return SessionErrors.MaterialAlreadyGivenToSession;
+                    }
+                }
+            }
+
+            return Result.Success;
+        }
+*/

@@ -28,5 +28,13 @@ namespace CourseManagement.Domain.Courses
         public static readonly Error MaterialAlreadyGivenToSession = Error.Validation(
             "Session.MaterialAlreadyGivenToSession",
             "Session already has this material.");
+
+        public static readonly Error SessionCanNotHaveMoreThanFourMaterials = Error.Validation(
+            "Session.SessionCanNotHaveMoreThanFourMaterials",
+            "Session can't have more than four materials.");
+
+        public static readonly Error SessionMaterialNotFound = Error.Validation(
+            "Session.SessionMaterialNotFound",
+            "Session material not found.");
     }
 }

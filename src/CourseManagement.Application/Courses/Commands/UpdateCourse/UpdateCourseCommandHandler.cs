@@ -40,11 +40,16 @@ namespace CourseManagement.Application.Courses.Commands.UpdateCourse
                     subject: command.subject ?? oldCourse.Subject,
                     description: command.description ?? oldCourse.Description);
 
-                _coursesRepository.UpdateCourse(oldCourse, newCourse);
+                if (newCourse.IsError)
+                {
+                    return newCourse.Errors;
+                }
+
+                _coursesRepository.UpdateCourse(oldCourse, newCourse.Value);
 
                 await _unitOfWork.CommitChangesAsync();
 
-                return CourseDto.AddCourseDto(newCourse);
+                return CourseDto.AddCourseDto(newCourse.Value);
             }
             catch (Exception ex)
             {

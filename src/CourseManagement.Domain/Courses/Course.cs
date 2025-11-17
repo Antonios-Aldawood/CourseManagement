@@ -26,6 +26,26 @@ namespace CourseManagement.Domain.Courses
             Description = description;
         }
 
+        private ErrorOr<Success> CheckIfCourseIsValid()
+        {
+            if (Subject.Length < 3 || Subject.Length > 35)
+            {
+                return CourseErrors.CourseSubjectIsNotValid;
+            }
+
+            return Result.Success;
+        }
+
+        private static ErrorOr<Success> CheckIfCourseSubjectIsValid(string subject)
+        {
+            if (subject.Length < 3 || subject.Length > 35)
+            {
+                return CourseErrors.CourseSubjectIsNotValid;
+            }
+
+            return Result.Success;
+        }
+
         public Success SpecifyCourseEligibilityForAll()
         {
             IsForAll = true;
@@ -127,17 +147,27 @@ namespace CourseManagement.Domain.Courses
             return newSession.Value;
         }
 
-        public ErrorOr<Session> AddCourseSessionMaterial(
+        public ErrorOr<Material> AddCourseSessionMaterial(
             int sessionId,
             string path,
             bool isVideo)
         {
+                    ///////// Before it got needed in other methods. /////////
+            /*
             if (Sessions!.FirstOrDefault(s => s.Id == sessionId) is not Session session)
             {
                 return CourseErrors.SessionNotFound;
             }
+            */
 
-            var material = session.AddSessionMaterial(
+            var session = CheckIfCourseHasSessionBySessionId(sessionId);
+            
+            if (session.IsError)
+            {
+                return session.Errors;
+            }
+
+            var material = session.Value.AddSessionMaterial(
                 path: path,
                 isVideo: isVideo);
 
@@ -146,12 +176,95 @@ namespace CourseManagement.Domain.Courses
                 return material.Errors;
             }
 
-            return session;
+            return material.Value;
+        }
+
+        public ErrorOr<Material> UpdateCourseSessionMaterial(
+            int sessionId,
+            int materialId,
+            string path,
+            bool isVideo)
+        {
+            var session = CheckIfCourseHasSessionBySessionId(sessionId);
+
+            if (session.IsError)
+            {
+                return session.Errors;
+            }
+
+            var updatedMaterial = session.Value.UpdateSessionMaterial(
+                materialId: materialId,
+                path: path,
+                isVideo: isVideo);
+
+            if (updatedMaterial.IsError)
+            {
+                return updatedMaterial.Errors;
+            }
+
+            return updatedMaterial.Value;
+        }
+
+        public ErrorOr<Material> UpdateCourseSessionMaterialSessionPlacement(
+            int oldMaterialId,
+            int oldSessionId,
+            string materialNewSessionName,
+            Course? newCourse)
+        {
+            var oldSession = CheckIfCourseHasSessionBySessionId(oldSessionId);
+
+            if (oldSession.IsError)
+            {
+                return oldSession.Errors;
+            }
+
+            ErrorOr<Session> newSession;
+
+            if (newCourse != null)
+            {
+                newSession = newCourse.CheckIfCourseHasSession(materialNewSessionName);
+
+                if (newSession.IsError)
+                {
+                    return newSession.Errors;
+                }
+            }
+            else
+            {
+                newSession = CheckIfCourseHasSession(materialNewSessionName);
+
+                if (newSession.IsError)
+                {
+                    return newSession.Errors;
+                }
+            }
+            
+    ///////// With it, we can't update material for sessions outside this course /////////
+            /*
+            var newSessionExists = CheckIfCourseHasSessionBySessionId(newSession.Id);
+
+            if (newSessionExists.IsError)
+            {
+                return newSessionExists.Errors;
+            }
+            */
+
+            var updatedMaterial = oldSession.Value.UpdateSessionMaterialSessionPlacement(
+                oldMaterialId: oldMaterialId,
+                newSession: newSession.Value);
+
+            if (updatedMaterial.IsError)
+            {
+                return updatedMaterial.Errors;
+            }
+
+            return updatedMaterial.Value;
         }
 
         public ErrorOr<Session> CheckIfCourseHasSession(string sessionName)
         {
-            if (Sessions is not null && 
+            if (Sessions is not null &&
+                Sessions.Count != 0 &&
                 Sessions.FirstOrDefault(s => s.Name == sessionName) is Session session)
             {
                 return session;
@@ -160,7 +273,19 @@ namespace CourseManagement.Domain.Courses
             return CourseErrors.SessionNotFound;
         }
 
-        public static Course CreateCourse(
+        public ErrorOr<Session> CheckIfCourseHasSessionBySessionId(int sessionId)
+        {
+            if (Sessions is not null &&
+                Sessions.Count != 0 &&
+                Sessions.FirstOrDefault(s => s.Id == sessionId) is Session session)
+            {
+                return session;
+            }
+
+            return CourseErrors.SessionNotFound;
+        }
+
+        public static ErrorOr<Course> CreateCourse(
             string subject,
             string description)
         {
@@ -168,13 +293,27 @@ namespace CourseManagement.Domain.Courses
                 subject: subject,
                 description: description);
 
+            var courseValidity = course.CheckIfCourseIsValid();
+            
+            if (courseValidity != Result.Success)
+            {
+                return courseValidity.Errors;
+            }
+
             return course;
         }
 
-        public Course UpdateCourse(
+        public ErrorOr<Course> UpdateCourse(
             string subject,
             string description)
         {
+            var courseValidity = CheckIfCourseSubjectIsValid(subject);
+
+            if (courseValidity != Result.Success)
+            {
+                return courseValidity.Errors;
+            }
+
             Subject = subject;
             Description = description;
 
