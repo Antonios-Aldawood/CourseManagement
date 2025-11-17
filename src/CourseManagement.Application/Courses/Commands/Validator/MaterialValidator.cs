@@ -43,16 +43,16 @@ namespace CourseManagement.Application.Courses.Commands.Validator
 
         private static bool ValidPath(string path)
         {
-            if (!string.IsNullOrEmpty(path))
+            // Detect ANY illegal character anywhere in the string
+            string pattern = @"[<>|*?\""]";
+
+            // If it contains ANY, reject
+            if (Regex.IsMatch(path, pattern))
             {
-                string criteria = @"^[/\""<>|*?]";
-                return
-                    path != null &&
-                    Regex.IsMatch(path, criteria)! &&
-                    Path.IsPathRooted(path);
+                return false;
             }
 
-            return false;
+            return Path.IsPathRooted(path);
         }
 
         private static bool ValidIsVideo(bool isVideo)
@@ -70,3 +70,56 @@ namespace CourseManagement.Application.Courses.Commands.Validator
         }
     }
 }
+
+/*
+private static bool ValidPath(string path)
+{
+    if (string.IsNullOrWhiteSpace(path))
+    {
+        return false;
+    }
+    
+    // Valid path characters
+    if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+    {
+        return false;
+    }
+
+    // Valid file characters
+    char[] invalidFileChars = Path.GetInvalidFileNameChars();
+    foreach (var part in path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+    {
+        if (part.IndexOfAny(invalidFileChars) >= 0)
+            return false;
+    }
+
+    return Path.IsPathRooted(path);
+}
+
+private static bool ValidPath(string path)
+{
+    if (!string.IsNullOrEmpty(path))
+    {
+        string criteria = @"^[\""<>|*?]";
+        return
+            path != null &&
+            Regex.IsMatch(path, criteria)! &&
+            Path.IsPathRooted(path);
+    }
+
+    return false;
+}
+
+private static bool ValidPath(string path)
+{
+    if (string.IsNullOrWhiteSpace(path))
+        return false;
+
+    // Reject if contains invalid chars
+    char[] invalid = Path.GetInvalidPathChars();
+    if (path.IndexOfAny(invalid) >= 0)
+        return false;
+
+    return Path.IsPathRooted(path);
+}
+*/
