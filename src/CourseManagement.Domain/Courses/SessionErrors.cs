@@ -21,6 +21,10 @@ namespace CourseManagement.Domain.Courses
             "Session.EndTimeCannotBeMoreThan10HoursAfterStartTime",
             "End-time cannot be more than 10 hours after start-time.");
 
+        public static readonly Error SessionOnlineOfflineStatusIllFormatted = Error.Validation(
+            "Session.SessionOnlineOfflineStatusIllFormatted",
+            "Session offline/online status wrongly specified.");
+
         public static readonly Error SeatsExceedingLimit = Error.Validation(
             "Session.SeatsExceedingLimit",
             "Session seats can not cross the 50 limit.");

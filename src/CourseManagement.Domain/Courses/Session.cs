@@ -47,41 +47,64 @@ namespace CourseManagement.Domain.Courses
             DateTimeOffset startDate,
             DateTimeOffset endDate)
         {
-            if (startDate >= DateTimeOffset.UtcNow.AddMonths(1) ||
-                endDate >= DateTimeOffset.UtcNow.AddMonths(3))
+            if (startDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
+                endDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
+                startDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0 ||
+                endDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0)
             {
                 return SessionErrors.StartTimeOrEndTimeBeyondBoundaries;
             }
 
-            if (startDate >= endDate)
+            if (startDate.CompareTo(endDate) >= 0)
             {
                 return SessionErrors.StartTimeCannotBeAfterEndTime;
+            }
+
+            if (endDate.CompareTo(startDate.AddHours(10)) >= 0)
+            {
+                return SessionErrors.EndTimeCannotBeMoreThan10HoursAfterStartTime;
             }
 
             return Result.Success;
         }
 
+        private static bool HasInvalidOnlineOfflineState(
+            bool isOffline,
+            int? seats,
+            string? link,
+            string? app)
+        {
+            return isOffline
+                ? seats == null || link != null || app != null
+                : seats != null || link == null || app == null;
+        }
+
+        private static bool HasInvalidSeatsNumber(int? seats)
+        {
+            return seats != null && (seats > 50 || seats <= 0);
+        }
+
         private ErrorOr<Success> ValidateSession()
         {
-            if (StartDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
-                EndDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
-                StartDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0 ||
-                EndDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0)
+            ErrorOr<Success> datesValidity = ValidateStartAndEndDate(
+                startDate: StartDate,
+                endDate: EndDate);
+
+            if (datesValidity != Result.Success)
             {
-                return SessionErrors.StartTimeOrEndTimeBeyondBoundaries;
+                return datesValidity.Errors;
             }
 
-            if (StartDate.CompareTo(EndDate) >= 0)
+            if (HasInvalidOnlineOfflineState(
+                isOffline: IsOffline,
+                seats: Seats,
+                link: Link,
+                app: App))
             {
-                return SessionErrors.StartTimeCannotBeAfterEndTime;
+                return SessionErrors.SessionOnlineOfflineStatusIllFormatted;
             }
 
-            if (EndDate.CompareTo(StartDate.AddHours(10)) >= 0)
-            {
-                return SessionErrors.EndTimeCannotBeMoreThan10HoursAfterStartTime;
-            }
-
-            if (Seats >= 50)
+            if (HasInvalidSeatsNumber(seats: Seats))
             {
                 return SessionErrors.SeatsExceedingLimit;
             }
@@ -236,6 +259,67 @@ namespace CourseManagement.Domain.Courses
 }
 
 /*
+        private static ErrorOr<Success> ValidateStartAndEndDate(
+            DateTimeOffset startDate,
+            DateTimeOffset endDate)
+        {
+            if (startDate >= DateTimeOffset.UtcNow.AddMonths(1) ||
+                endDate >= DateTimeOffset.UtcNow.AddMonths(3))
+            {
+                return SessionErrors.StartTimeOrEndTimeBeyondBoundaries;
+            }
+
+            if (startDate >= endDate)
+            {
+                return SessionErrors.StartTimeCannotBeAfterEndTime;
+            }
+
+            return Result.Success;
+        }
+
+        private ErrorOr<Success> CheckIfSessionIsValid()
+        {
+            if (StartDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
+                EndDate.CompareTo(DateTimeOffset.UtcNow) < 0 ||
+                StartDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0 ||
+                EndDate.CompareTo(DateTimeOffset.UtcNow.AddMonths(3)) >= 0)
+            {
+                return SessionErrors.StartTimeOrEndTimeBeyondBoundaries;
+            }
+
+            if (StartDate.CompareTo(EndDate) >= 0)
+            {
+                return SessionErrors.StartTimeCannotBeAfterEndTime;
+            }
+
+            if (EndDate.CompareTo(StartDate.AddHours(10)) >= 0)
+            {
+                return SessionErrors.EndTimeCannotBeMoreThan10HoursAfterStartTime;
+            }
+
+            if (IsOffline)
+            {
+                if (Seats == null || Link != null || App != null)
+                {
+                    return SessionErrors.SessionOnlineOfflineStatusIllFormatted;
+                }
+            }
+            else
+            {
+                if (Seats != null || Link == null || App == null)
+                {
+                    return SessionErrors.SessionOnlineOfflineStatusIllFormatted;
+                }
+            }
+
+            if (seats > 50 || seats <= 0)
+            {
+                return SessionErrors.SeatsExceedingLimit;
+            }
+            
+            return Result.Success;
+        }
+
         private ErrorOr<Success> CheckIfMaterialIsDuplicatedOrMoreThanFour(
             string path,
             bool isVideo)
