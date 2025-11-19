@@ -38,5 +38,7 @@ namespace CourseManagement.Application.Common.Interfaces
         Task<List<Course>> GetCoursesForUserAsync(int userId);
         Task<List<Course>> GetCoursesWithSessionsForUsersEnrolledInThisCourse(int courseId);
         Task<Course?> GetCourseWithSessionsAndSessionsMaterialsByCourseIdAsync(int courseId);
+        Task<Course?> GetCourseSessionMaterials(int courseId, int sessionId);
+        Task<List<Course>> GetCoursesWithSessionsAndSessionsMaterials();
     }
 }

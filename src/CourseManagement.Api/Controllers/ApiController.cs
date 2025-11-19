@@ -8,17 +8,21 @@ namespace CourseManagement.Api.Controllers
     [ApiController]
     public class ApiController : ControllerBase
     {
-        //private Dictionary<string, string> headersDictionary = [];
+        ///////// Making headersDictionary inheritable. /////////
+        /*
+        private Dictionary<string, string> headersDictionary = [];
 
-        //protected void SetHeadersDictionary(Dictionary<string, string> headers)
-        //{
-        //    headersDictionary = headers;
-        //}
+        protected void SetHeadersDictionary(Dictionary<string, string> headers)
+        {
+            headersDictionary = headers;
+        }
 
-        //protected Dictionary<string, string> GetHeadersDictionary()
-        //{
-        //    return headersDictionary;
-        //}
+        protected Dictionary<string, string> GetHeadersDictionary()
+        {
+            return headersDictionary;
+        }
+        protected Dictionary<string, string> headersDictionary => Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+        */
 
         protected IActionResult Problem(List<Error> errors)
         {

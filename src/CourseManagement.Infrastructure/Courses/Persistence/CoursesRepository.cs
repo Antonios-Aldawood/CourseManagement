@@ -322,6 +322,22 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
                     .ThenInclude(s => s.Materials)
                 .FirstOrDefaultAsync(c => c.Id == courseId);
         }
+
+        public async Task<Course?> GetCourseSessionMaterials(int courseId, int sessionId)
+        {
+            return await _dbContext.Courses
+                .Include(c => c.Sessions!)
+                    .ThenInclude(s => s.Materials)
+                .FirstOrDefaultAsync(c => c.Id == courseId && c.Sessions!.FirstOrDefault(s => s.Id == sessionId) is Session);
+        }
+
+        public async Task<List<Course>> GetCoursesWithSessionsAndSessionsMaterials()
+        {
+            return await _dbContext.Courses
+                .Include(c => c.Sessions!)
+                    .ThenInclude(s => s.Materials)
+                .ToListAsync();
+        }
     }
 }
 

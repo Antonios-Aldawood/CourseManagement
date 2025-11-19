@@ -8,8 +8,10 @@ using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterialP
 using CourseManagement.Application.Courses.Queries.GetAllCourses;
 using CourseManagement.Application.Courses.Queries.GetCourse;
 using CourseManagement.Application.Courses.Queries.GetCourseEligibilities;
+using CourseManagement.Application.Courses.Queries.GetCourseSessionMaterials;
 using CourseManagement.Application.Courses.Queries.GetCourseSessions;
 using CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities;
+using CourseManagement.Application.Courses.Queries.GetCoursesSessionsMaterials;
 using CourseManagement.Application.Courses.Queries.GetRecommendedCourses;
 using CourseManagement.Contracts.Courses;
 using MediatR;
@@ -532,6 +534,69 @@ namespace CourseManagement.Api.Controllers
                         EndDate: session.EndDate,
                         IsOffline: session.IsOffline,
                         Materials: Materials)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Course/Session/Materials")]
+        public async Task<IActionResult> GetCourseSessionMaterials([FromQuery] int CourseId, [FromQuery] int SessionId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetCourseSessionMaterialsQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                courseId: CourseId,
+                sessionId: SessionId);
+
+            var getCourseSessionMaterials = await _mediator.Send(query);
+
+            return getCourseSessionMaterials.Match(
+                materials => Ok(
+                    materials.ConvertAll(
+                        material => new MaterialResponse(
+                            MaterialId: material.MaterialId,
+                            Path: material.Path,
+                            IsVideo: material.IsVideo))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Sessions/Materials")]
+        public async Task<IActionResult> GetCoursesWithSessionsAndMaterials()
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetCoursesSessionsMaterialsQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary);
+
+            var getCoursesWithSessionsAndMaterialsResult = await _mediator.Send(query);
+
+            List<CourseSessionsMaterialsResponse> coursesSessionsAndMaterials = getCoursesWithSessionsAndMaterialsResult.IsError == false ?
+                getCoursesWithSessionsAndMaterialsResult.Value.Select(c => new CourseSessionsMaterialsResponse(
+                    CourseId: c.CourseId,
+                    Subject: c.Subject,
+                    Description: c.Description,
+                    SessionsAndMaterials: c.Sessions != null ?
+                        c.Sessions.Select(s => new SessionAndMaterialsResponse(
+                            SessionId: s.Id,
+                            Name: s.Name,
+                            CourseId: s.CourseId,
+                            StartDate: s.StartDate,
+                            EndDate: s.EndDate,
+                            IsOffline: s.IsOffline,
+                            Materials: s.Materials != null ?
+                                s.Materials.Select(m => new MaterialResponse(
+                                    MaterialId: m.Id,
+                                    Path: m.Path,
+                                    IsVideo: m.IsVideo))
+                                .ToList() : []))
+                        .ToList() : []))
+                .ToList() : [];
+            
+            return getCoursesWithSessionsAndMaterialsResult.Match(
+                courses => Ok(coursesSessionsAndMaterials),
                 Problem);
         }
     }

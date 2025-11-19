@@ -68,15 +68,15 @@ namespace CourseManagement.Domain.Courses
             return Result.Success;
         }
 
-        private static bool HasInvalidOnlineOfflineState(
+        private static bool HasValidOnlineOfflineState(
             bool isOffline,
             int? seats,
             string? link,
             string? app)
         {
             return isOffline
-                ? seats == null || link != null || app != null
-                : seats != null || link == null || app == null;
+                ? seats != null && link == null && app == null
+                : seats == null && link != null && app != null;
         }
 
         private static bool HasInvalidSeatsNumber(int? seats)
@@ -95,7 +95,7 @@ namespace CourseManagement.Domain.Courses
                 return datesValidity.Errors;
             }
 
-            if (HasInvalidOnlineOfflineState(
+            if (!HasValidOnlineOfflineState(
                 isOffline: IsOffline,
                 seats: Seats,
                 link: Link,
@@ -104,7 +104,7 @@ namespace CourseManagement.Domain.Courses
                 return SessionErrors.SessionOnlineOfflineStatusIllFormatted;
             }
 
-            if (HasInvalidSeatsNumber(seats: Seats))
+            if (HasInvalidSeatsNumber(seats: Seats ?? 15))
             {
                 return SessionErrors.SeatsExceedingLimit;
             }

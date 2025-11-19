@@ -15,7 +15,9 @@ namespace CourseManagement.Application.Courses.Commands.Validator
             AbstractValidator<T> validator,
             Expression<Func<T, string>> getName,
             Expression<Func<T, DateTimeOffset>> getStartDate,
-            Expression<Func<T, DateTimeOffset>> getEndDate)
+            Expression<Func<T, DateTimeOffset>> getEndDate,
+            Expression<Func<T, int?>> getSeats,
+            Expression<Func<T, string?>> getApp)
         {
             validator.When(x => !string.IsNullOrEmpty(getName.Compile().Invoke(x)), () =>
             {
@@ -48,6 +50,22 @@ namespace CourseManagement.Application.Courses.Commands.Validator
             {
                 validator.RuleFor(getEndDate)
                     .NotEmpty().WithMessage("End date is required.");
+            });
+
+            validator.When(x => !string.IsNullOrEmpty(getSeats.Compile().Invoke(x).ToString()), () =>
+            {
+                validator.RuleFor(getSeats)
+                .GreaterThanOrEqualTo(1)
+                .LessThanOrEqualTo(100)
+                .WithMessage("Seats can't be more than 50, nor less than 1.");
+            });
+
+            validator.When(x => !string.IsNullOrEmpty(getApp.Compile().Invoke(x)), () =>
+            {
+                validator.RuleFor(getApp)
+                .MinimumLength(5)
+                .MaximumLength(75)
+                .WithMessage("App can't be less than 5 characters, nor can it be more than 75 characters.");
             });
         }
 

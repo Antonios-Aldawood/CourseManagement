@@ -16,7 +16,9 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSession
                 validator: this,
                 getName: x => x.sessionName,
                 getStartDate: x => x.startDate,
-                getEndDate: x => x.endDate);
+                getEndDate: x => x.endDate,
+                getSeats: x => x.seats,
+                getApp: x => x.app);
         }
     }
 }
