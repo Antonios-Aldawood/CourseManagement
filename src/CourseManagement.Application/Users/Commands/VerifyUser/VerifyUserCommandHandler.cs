@@ -7,8 +7,9 @@ using CourseManagement.Application.Common.Interfaces;
 using MediatR;
 using ErrorOr;
 using CourseManagement.Application.Users.Common.Dto;
-using CourseManagement.Domain.Users;
+using CourseManagement.Application.Common.Behaviors;
 using Microsoft.AspNetCore.Identity;
+using CourseManagement.Domain.Users;
 
 namespace CourseManagement.Application.Users.Commands.VerifyUser
 {
@@ -29,6 +30,12 @@ namespace CourseManagement.Application.Users.Commands.VerifyUser
                 if (user == null)
                 {
                     return Error.Validation(description: "User not found.");
+                }
+
+                var authenticatedAlias = IdentityBehavior.CheckIfAuthenticationAliasMatch(command.headers, command.alias);
+                if (authenticatedAlias != Result.Success)
+                {
+                    return authenticatedAlias.Errors;
                 }
 
                 if (user.IsVerified)
