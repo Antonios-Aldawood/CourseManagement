@@ -37,6 +37,10 @@ namespace CourseManagement.Application.Courses.Queries.GetCourseSessionMaterials
                     .Select(m => new MaterialDto
                     {
                         MaterialId = m.Id,
+                        SessionId = m.SessionId,
+                        SessionName = session.Value.Name,
+                        CourseId = session.Value.CourseId,
+                        CourseSubject = course.Subject,
                         Path = m.Path,
                         IsVideo = m.IsVideo,
 

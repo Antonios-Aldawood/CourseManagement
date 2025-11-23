@@ -435,6 +435,10 @@ namespace CourseManagement.Api.Controllers
                 addedCourseSessionMaterialResult.Value.Materials.ForEach(m =>
                     Materials.Add(new MaterialResponse(
                         MaterialId: m.MaterialId,
+                        SessionId: m.SessionId,
+                        SessionName: m.SessionName,
+                        CourseId: m.CourseId,
+                        CourseSubject: m.CourseSubject,
                         Path: m.Path,
                         IsVideo: m.IsVideo)));
             }
@@ -477,6 +481,10 @@ namespace CourseManagement.Api.Controllers
                 updateCourseSessionMaterialResult.Value.Materials.ForEach(m =>
                     Materials.Add(new MaterialResponse(
                         MaterialId: m.MaterialId,
+                        SessionId: m.SessionId,
+                        SessionName: m.SessionName,
+                        CourseId: m.CourseId,
+                        CourseSubject: m.CourseSubject,
                         Path: m.Path,
                         IsVideo: m.IsVideo)));
             }
@@ -519,6 +527,10 @@ namespace CourseManagement.Api.Controllers
                 updateCourseSessionMaterialPlacementResult.Value.Materials.ForEach(m =>
                     Materials.Add(new MaterialResponse(
                         MaterialId: m.MaterialId,
+                        SessionId: m.SessionId,
+                        SessionName: m.SessionName,
+                        CourseId: m.CourseId,
+                        CourseSubject: m.CourseSubject,
                         Path: m.Path,
                         IsVideo: m.IsVideo)));
             }
@@ -556,6 +568,10 @@ namespace CourseManagement.Api.Controllers
                     materials.ConvertAll(
                         material => new MaterialResponse(
                             MaterialId: material.MaterialId,
+                            SessionId: material.SessionId,
+                            SessionName: material.SessionName,
+                            CourseId: material.CourseId,
+                            CourseSubject: material.CourseSubject,
                             Path: material.Path,
                             IsVideo: material.IsVideo))),
                 Problem);
@@ -589,6 +605,10 @@ namespace CourseManagement.Api.Controllers
                             Materials: s.Materials != null ?
                                 s.Materials.Select(m => new MaterialResponse(
                                     MaterialId: m.Id,
+                                    SessionId: m.SessionId,
+                                    SessionName: s.Name,
+                                    CourseId: s.CourseId,
+                                    CourseSubject: c.Subject,
                                     Path: m.Path,
                                     IsVideo: m.IsVideo))
                                 .ToList() : []))

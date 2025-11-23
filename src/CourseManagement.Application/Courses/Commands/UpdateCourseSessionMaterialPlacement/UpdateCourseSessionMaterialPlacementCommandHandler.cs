@@ -59,6 +59,10 @@ namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMater
                     materials.Add(new MaterialDto
                     {
                         MaterialId = m.Id,
+                        SessionId = m.SessionId,
+                        SessionName = session.Name,
+                        CourseId = session.CourseId,
+                        CourseSubject = course.Subject,
                         Path = m.Path,
                         IsVideo = m.IsVideo,
                     }));
