@@ -44,13 +44,13 @@ namespace CourseManagement.Application.Courses.Queries.DownloadCourseSessionMate
                 var courses = await _coursesRepository.GetAllCoursesWithSessionsAndMaterialsThatMatchEligibilitiesAsync(positionId, user.DepartmentId, user.JobId);
                 if (courses.FirstOrDefault(c => c.Id == query.courseId) is not Course course)
                 {
-                    return Error.Validation(description: "User not eligible to download course material.");
+                    return Error.Validation(description: "User not eligible to download course material, or course was not found.");
                 }
 
                 var isEnrolled = await _enrollmentsRepository.ExistsForUserCourseAsync(user.UserId, course.Id);
                 if (isEnrolled == false)
                 {
-                    return Error.Validation(description: $"Can't download material because user isn't enrolled.");
+                    return Error.Validation(description: "Can't download material because user isn't enrolled.");
                 }
                 
                 var session = course.CheckIfCourseHasSessionBySessionId(query.sessionId);
