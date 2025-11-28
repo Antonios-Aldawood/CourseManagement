@@ -355,6 +355,21 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
                     .ThenInclude(s => s.Materials)
                 .ToListAsync();
         }
+
+        public bool CourseSessionMaterialFileExists(Course course, string sessionName, string materialPath)
+        {
+            string? filePath = course.Sessions?
+                .FirstOrDefault(s => s.Name == sessionName)?.Materials?
+                    .FirstOrDefault(m => m.Path == materialPath)?.Path;
+
+            if (filePath != null &&
+                File.Exists(filePath))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
 
@@ -382,5 +397,29 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
                                 .Any(e => e.CourseId == c.Id && userIdsInCourse.Contains(e.UserId)))
                 .Distinct()
                 .ToListAsync();
+        }
+
+        public bool CourseSessionMaterialFileExists(Course course, string sessionName, string materialPath)
+        {
+            if (course.Sessions != null &&
+                course.Sessions.Count != 0)
+            {
+                foreach (var session in course.Sessions)
+                {
+                    if (session.Materials != null &&
+                        session.Materials.Count != 0)
+                    {
+                        foreach (var material in session.Materials)
+                        {
+                            if (material.Path == path)
+                            {
+                                string filePath2 = material.Path;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 */

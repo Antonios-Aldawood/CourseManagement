@@ -51,7 +51,7 @@ namespace CourseManagement.Domain.Courses
 
         private static ErrorOr<Success> CheckIfPathIsValid(string path)
         {
-            if (path.Length > 500)
+            if (path.Length < 0 || path.Length > 500)
             {
                 return MaterialErrors.PathIsTooLong;
             }

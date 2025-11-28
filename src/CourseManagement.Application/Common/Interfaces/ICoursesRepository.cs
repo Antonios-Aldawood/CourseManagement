@@ -41,5 +41,6 @@ namespace CourseManagement.Application.Common.Interfaces
         Task<Course?> GetCourseSessionMaterials(int courseId, int sessionId);
         Task<List<Course>> GetCoursesWithSessionsAndSessionsMaterials();
         Task<List<Course>> GetAllCoursesWithSessionsAndMaterialsThatMatchEligibilitiesAsync(int positionId, int departmentId, int jobId);
+        bool CourseSessionMaterialFileExists(Course course, string sessionName, string materialPath);
     }
 }

@@ -40,7 +40,6 @@ namespace CourseManagement.Application.Courses.Queries.DownloadCourseSessionMate
                 }
 
                 int positionId = UserPositionCourseEligibilityService.ValidEligibilityPosition(user.Position);
-
                 var courses = await _coursesRepository.GetAllCoursesWithSessionsAndMaterialsThatMatchEligibilitiesAsync(positionId, user.DepartmentId, user.JobId);
                 if (courses.FirstOrDefault(c => c.Id == query.courseId) is not Course course)
                 {
@@ -65,14 +64,21 @@ namespace CourseManagement.Application.Courses.Queries.DownloadCourseSessionMate
                     return Error.Validation(description: "Material not found.");
                 }
 
-                if (string.IsNullOrWhiteSpace(material.Path))
+                bool FileIsFoundOnHDD = _coursesRepository.CourseSessionMaterialFileExists(
+                    course: course,
+                    sessionName: session.Value.Name,
+                    materialPath: material.Path);
+                if (FileIsFoundOnHDD == false)
                 {
-                    return Error.Validation(description: "Material does not have a valid path.");
+                    return Error.Validation(description: "Material path file not found.");
                 }
+
+                string fileName = Path.GetFileName(material.Path);
 
                 return new DownloadMaterialFileInfo
                 {
                     Path = material.Path,
+                    FileName = fileName,
 
                     AffectedId = material.Id
                 };
@@ -85,3 +91,10 @@ namespace CourseManagement.Application.Courses.Queries.DownloadCourseSessionMate
     }
 
 }
+
+/*
+                if (string.IsNullOrWhiteSpace(material.Path))
+                {
+                    return Error.Validation(description: "Material does not have a valid path.");
+                }
+*/

@@ -5,7 +5,6 @@ using CourseManagement.Application.Courses.Commands.CreateCourse;
 using CourseManagement.Application.Courses.Commands.UpdateCourse;
 using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterial;
 using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterialPlacement;
-using CourseManagement.Application.Courses.Common.Dto;
 using CourseManagement.Application.Courses.Queries.DownloadCourseSessionMaterial;
 using CourseManagement.Application.Courses.Queries.GetAllCourses;
 using CourseManagement.Application.Courses.Queries.GetCourse;
@@ -643,11 +642,20 @@ namespace CourseManagement.Api.Controllers
 
             var result = await _mediator.Send(query);
 
-            return result.Match<IActionResult>(
-                fileInfo => StreamFileWithRanges(fileInfo),
+            return result.Match(
+                fileInfo => PhysicalFile(
+                    physicalPath: fileInfo.Path,
+                    contentType: "application/octet-stream",
+                    fileDownloadName: fileInfo.FileName,
+                    enableRangeProcessing: true),
                 Problem
             );
         }
+    }
+}
+
+/*
+using CourseManagement.Application.Courses.Common.Dto;
 
         private IActionResult StreamFileWithRanges(DownloadMaterialFileInfo fileInfo)
         {
@@ -665,6 +673,4 @@ namespace CourseManagement.Api.Controllers
             // Let ASP.NET Core handle ranges automatically
             return PhysicalFile(filePath, contentType, fileName, enableRangeProcessing: true);
         }
-
-    }
-}
+*/

@@ -22,7 +22,8 @@ namespace CourseManagement.Application.Courses.Common.Dto
 
     public record DownloadMaterialFileInfo : IHasAffectedIds
     {
-        public string Path { get; set; } = string.Empty;
+        public required string Path { get; set; }
+        public required string FileName { get; set; }
 
         public int AffectedId { get; set; }
     }
