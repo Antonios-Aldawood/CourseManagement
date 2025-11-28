@@ -5,6 +5,8 @@ using CourseManagement.Application.Courses.Commands.CreateCourse;
 using CourseManagement.Application.Courses.Commands.UpdateCourse;
 using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterial;
 using CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterialPlacement;
+using CourseManagement.Application.Courses.Common.Dto;
+using CourseManagement.Application.Courses.Queries.DownloadCourseSessionMaterial;
 using CourseManagement.Application.Courses.Queries.GetAllCourses;
 using CourseManagement.Application.Courses.Queries.GetCourse;
 using CourseManagement.Application.Courses.Queries.GetCourseEligibilities;
@@ -13,6 +15,7 @@ using CourseManagement.Application.Courses.Queries.GetCourseSessions;
 using CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities;
 using CourseManagement.Application.Courses.Queries.GetCoursesSessionsMaterials;
 using CourseManagement.Application.Courses.Queries.GetRecommendedCourses;
+using CourseManagement.Application.Courses.Queries.SearchCoursesForEligibilities;
 using CourseManagement.Contracts.Courses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -619,5 +622,49 @@ namespace CourseManagement.Api.Controllers
                 courses => Ok(coursesSessionsAndMaterials),
                 Problem);
         }
+
+        [Authorize]
+        [HttpGet("Course/Session/Material/Download")]
+        public async Task<IActionResult> DownloadMaterial(
+            [FromQuery] int UserId,
+            [FromQuery] int CourseId,
+            [FromQuery] int SessionId,
+            [FromQuery] int MaterialId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new DownloadCourseSessionMaterialQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                userId: UserId,
+                courseId: CourseId,
+                sessionId: SessionId,
+                materialId: MaterialId);
+
+            var result = await _mediator.Send(query);
+
+            return result.Match<IActionResult>(
+                fileInfo => StreamFileWithRanges(fileInfo),
+                Problem
+            );
+        }
+
+        private IActionResult StreamFileWithRanges(DownloadMaterialFileInfo fileInfo)
+        {
+            var filePath = fileInfo.Path;
+
+            // This check in its own, should be in infrastructure.
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found on disk.");
+            }
+            
+            var fileName = Path.GetFileName(filePath);
+            var contentType = "application/octet-stream";
+
+            // Let ASP.NET Core handle ranges automatically
+            return PhysicalFile(filePath, contentType, fileName, enableRangeProcessing: true);
+        }
+
     }
 }

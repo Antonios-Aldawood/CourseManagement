@@ -10,7 +10,7 @@ using CourseManagement.Application.Courses.Common.Dto;
 using CourseManagement.Application.Common.Behaviors;
 using CourseManagement.Domain.Services;
 
-namespace CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities
+namespace CourseManagement.Application.Courses.Queries.SearchCoursesForEligibilities
 {
     public class SearchCourseForEligibilitiesQueryHandler(
         ICoursesRepository coursesRepository,

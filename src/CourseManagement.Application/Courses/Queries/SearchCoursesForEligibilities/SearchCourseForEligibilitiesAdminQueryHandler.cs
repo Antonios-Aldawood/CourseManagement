@@ -9,7 +9,7 @@ using ErrorOr;
 using CourseManagement.Application.Courses.Common.Dto;
 using CourseManagement.Domain.Services;
 
-namespace CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities
+namespace CourseManagement.Application.Courses.Queries.SearchCoursesForEligibilities
 {
     public class SearchCourseForEligibilitiesAdminQueryHandler(
         ICoursesRepository coursesRepository,

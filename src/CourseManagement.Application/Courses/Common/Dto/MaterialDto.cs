@@ -19,4 +19,11 @@ namespace CourseManagement.Application.Courses.Common.Dto
 
         public int AffectedId { get; set; }
     }
+
+    public record DownloadMaterialFileInfo : IHasAffectedIds
+    {
+        public string Path { get; set; } = string.Empty;
+
+        public int AffectedId { get; set; }
+    }
 }

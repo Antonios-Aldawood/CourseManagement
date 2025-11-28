@@ -275,6 +275,23 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
                           ).Distinct().ToListAsync();
         }
 
+        public async Task<List<Course>> GetAllCoursesWithSessionsAndMaterialsThatMatchEligibilitiesAsync(int positionId, int departmentId, int jobId)
+        {
+            return await (from eligibility in _dbContext.Eligibilities
+                          join course in _dbContext.Courses on eligibility.CourseId equals course.Id
+                          where
+                          course.IsForAll == true ||
+                          (eligibility.Key == "Position" && eligibility.Value == positionId) ||
+                          (eligibility.Key == "Department" && eligibility.Value == departmentId) ||
+                          (eligibility.Key == "Job" && eligibility.Value == jobId)
+                          select course
+                          )
+                          .Distinct()
+                          .Include(c => c.Sessions!)
+                            .ThenInclude(s => s.Materials)
+                          .ToListAsync();
+        }
+
         public async Task<List<Course>> GetCoursesForUserAsync(int userId)
         {
             return await (from course in _dbContext.Courses.Include(c => c.Sessions)

@@ -8,7 +8,7 @@ using ErrorOr;
 using CourseManagement.Application.Courses.Common.Dto;
 using CourseManagement.Application.Common.Interfaces;
 
-namespace CourseManagement.Application.Courses.Queries.GetCoursesForEligibilities
+namespace CourseManagement.Application.Courses.Queries.SearchCoursesForEligibilities
 {
     public record SearchCourseForEligibilitiesAdminQuery(
         string ipAddress,
