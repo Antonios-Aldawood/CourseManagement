@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 {
+    // For static files to not be hosted and accessed before authorization and controllers are accessed. 
+    builder.Services.Configure<StaticFileOptions>(_ => { });
+
     builder.Services.AddControllers()
         .AddJsonOptions(x =>
             x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);

@@ -49,7 +49,7 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateOptionalEnroll
                 }
 
                 bool isEligible = EnrollmentEligibilityValidation.EnrollmentEligibilityValidator(user, course);
-                if (isEligible == false)
+                if (course.IsForAll == false && isEligible == false)
                 {
                     return Error.Validation(description: "User not eligible to enroll in course.");
                 }

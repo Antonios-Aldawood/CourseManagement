@@ -41,7 +41,7 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateForcedEnrollme
                 }
 
                 bool isEligible = EnrollmentEligibilityValidation.EnrollmentEligibilityValidator(user, course);
-                if (isEligible == false)
+                if (course.IsForAll == false && isEligible == false)
                 {
                     return Error.Validation(description: "User not eligible to enroll in course.");
                 }
