@@ -8,6 +8,7 @@ using CourseManagement.Application.Common.Interfaces;
 using CourseManagement.Application.Common.Authorization;
 using CourseManagement.Application.Common.Behaviors;
 using FluentValidation;
+using CourseManagement.Application.Common.Brokers;
 
 namespace CourseManagement.Application
 {
@@ -16,6 +17,9 @@ namespace CourseManagement.Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddScoped<IAuthorizationService, AuthorizationService>();
+            services.AddSingleton<IRabbitMqConnection, RabbitMqConnection>();
+            services.AddHostedService<RabbitMqInitializer>();
+            services.AddScoped<IMessageProducer, RabbitMqProducer>();
 
             services.AddMediatR(options =>
             {
@@ -34,3 +38,8 @@ namespace CourseManagement.Application
         }
     }
 }
+
+/*
+            services.AddSingleton<RabbitMqConnection>();
+            services.AddSingleton<IRabbitMqConnection>(sp => sp.GetRequiredService<RabbitMqConnection>());
+*/

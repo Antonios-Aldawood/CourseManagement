@@ -19,6 +19,9 @@ using CourseManagement.Contracts.Courses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Text;
 
 namespace CourseManagement.Api.Controllers
 {
@@ -107,14 +110,39 @@ namespace CourseManagement.Api.Controllers
                 subject: Subject);
 
             var getCourseResult = await _mediator.Send(query);
+            
+            var factory = new ConnectionFactory
+            {
+                HostName = "localhost"
+            };
+
+            var connection = await factory.CreateConnectionAsync();
+
+            using var channel = await connection.CreateChannelAsync();
+
+            await channel.QueueDeclareAsync(
+                "eligibilities",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            var result = await channel.BasicGetAsync("eligibilities", autoAck: true);
+
+            string eligibilities = result != null
+                ? Encoding.UTF8.GetString(result.Body.ToArray())
+                : "No message in queue";
 
             return getCourseResult.Match(
                 courses => Ok(
                     courses.ConvertAll(
-                        course => new CourseResponse(
-                            CourseId: course.CourseId,
-                            Subject: course.Subject,
-                            Description: course.Description))),
+                        course => new
+                        {
+                            CourseId = course.CourseId,
+                            Subject = course.Subject,
+                            Description = course.Description,
+                            Eligibilities = eligibilities
+                        })),
                 Problem);
         }
 

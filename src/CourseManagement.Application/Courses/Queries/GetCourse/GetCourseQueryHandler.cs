@@ -12,10 +12,12 @@ using CourseManagement.Domain.Courses;
 namespace CourseManagement.Application.Courses.Queries.GetCourse
 {
     public class GetCourseQueryHandler(
-        ICoursesRepository coursesRepository
+        ICoursesRepository coursesRepository,
+        IMessageProducer messageProducer
         ) : IRequestHandler<GetCourseQuery, ErrorOr<List<CourseDto>>>
     {
         private readonly ICoursesRepository _coursesRepository = coursesRepository;
+        private readonly IMessageProducer _messageProducer = messageProducer;
 
         public async Task<ErrorOr<List<CourseDto>>> Handle(GetCourseQuery query, CancellationToken cancellationToken)
         {
@@ -37,6 +39,8 @@ namespace CourseManagement.Application.Courses.Queries.GetCourse
 
                     courseResponse.Add(dto);
                 }
+
+                await _messageProducer.SendMessage(foundCourses.First().Eligibilities);
 
                 return courseResponse;
             }
