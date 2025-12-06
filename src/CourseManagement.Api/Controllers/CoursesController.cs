@@ -1,4 +1,5 @@
-﻿using CourseManagement.Application.Courses.Commands.AddCourseEligibility;
+﻿using ClamAV.Net.Client;
+using CourseManagement.Application.Courses.Commands.AddCourseEligibility;
 using CourseManagement.Application.Courses.Commands.AddCourseSession;
 using CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial;
 using CourseManagement.Application.Courses.Commands.CreateCourse;
@@ -20,7 +21,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace CourseManagement.Api.Controllers
@@ -444,7 +444,8 @@ namespace CourseManagement.Api.Controllers
 
         [Authorize]
         [HttpPost("Session/Material")]
-        public async Task<IActionResult> AddMaterial(AddCourseSessionMaterialRequest request)
+        [RequestSizeLimit(100_000_000)]
+        public async Task<IActionResult> AddMaterial([FromForm] AddCourseSessionMaterialRequest request)
         {
             var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
 
@@ -453,7 +454,7 @@ namespace CourseManagement.Api.Controllers
                 headers: headersDictionary,
                 courseId: request.CourseId,
                 sessionId: request.SessionId,
-                path: request.Path,
+                file: request.File,
                 isVideo: request.IsVideo);
 
             var addedCourseSessionMaterialResult = await _mediator.Send(command);
@@ -489,7 +490,8 @@ namespace CourseManagement.Api.Controllers
 
         [Authorize]
         [HttpPut("Session/Material")]
-        public async Task<IActionResult> UpdateMaterial(UpdateCourseSessionMaterialRequest request)
+        [RequestSizeLimit(100_000_000)]
+        public async Task<IActionResult> UpdateMaterial([FromForm] UpdateCourseSessionMaterialRequest request)
         {
             var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
 
@@ -499,7 +501,7 @@ namespace CourseManagement.Api.Controllers
                 courseId: request.CourseId,
                 sessionId: request.SessionId,
                 materialId: request.MaterialId,
-                path: request.Path,
+                file: request.File,
                 isVideo: request.IsVideo);
 
             var updateCourseSessionMaterialResult = await _mediator.Send(command);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using MediatR;
 using ErrorOr;
 using CourseManagement.Application.Courses.Common.Dto;
@@ -15,6 +16,7 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
         Dictionary<string, string> headers,
         int courseId,
         int sessionId,
-        string path,
+        //string path,
+        IFormFile file,
         bool isVideo) : IRequest<ErrorOr<SessionAndMaterialsDto>>, IHeaderCarrier;
 }

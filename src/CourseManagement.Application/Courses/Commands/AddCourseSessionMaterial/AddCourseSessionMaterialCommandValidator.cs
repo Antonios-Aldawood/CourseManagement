@@ -14,7 +14,7 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
         {
             MaterialValidatorRules.ApplyMaterialRules(
                 validator: this,
-                getPath: x => x.path,
+                getFile: x => x.file,
                 getIsVideo: x => x.isVideo);
         }
     }

@@ -22,15 +22,42 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
         {
             try
             {
+                //var extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
+                //if (extension != ".mp4" &&
+                //    extension != ".pdf")
+                //{
+                //    return Error.Validation(description: "Only PDF and MP4 files are allowed.");
+                //}
+
+                //if (extension == ".mp4" && command.isVideo == false)
+                //{
+                //    return Error.Validation(description: "File is a video, but you entered it wasn't.");
+                //}
+
                 var course = await _coursesRepository.GetCourseWithSessionsAndSessionsMaterialsByCourseIdAsync(command.courseId);
                 if (course == null)
                 {
                     return Error.Validation(description: "Course not found.");
                 }
 
+                var courseSession = course.CheckIfCourseHasSessionBySessionId(command.sessionId);
+                if (courseSession.IsError)
+                {
+                    return courseSession.Errors;
+                }
+
+                if (courseSession.Value.Materials != null &&
+                    courseSession.Value.Materials.Count != 0 &&
+                    courseSession.Value.Materials.Any(m => Path.GetFileName(m.Path) == $"{course.Subject}_{courseSession.Value.Name}_{command.file.FileName}"))
+                {
+                    return Error.Validation(description: "Material file name has already been used for this course session.");
+                }
+
+                var savedPath = await _coursesRepository.SaveCourseSessionMaterialAsync(course.Subject, courseSession.Value.Name, command.file);
+
                 var material = course.AddCourseSessionMaterial(
                     sessionId: command.sessionId,
-                    path: command.path,
+                    path: savedPath,
                     isVideo: command.isVideo);
 
                 if (material.IsError)
@@ -81,3 +108,12 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
         }
     }
 }
+
+/*
+                string[] allowedExtensions = { ".pdf", ".mp4", ".wmv" };
+                string ext = Path.GetExtension(command.file.FileName).ToLowerInvariant();
+                if (allowedExtensions.Contains(ext) == false)
+                {
+                    return Error.Validation(description: "Only PDF and MP4 files are allowed.");
+                }
+*/

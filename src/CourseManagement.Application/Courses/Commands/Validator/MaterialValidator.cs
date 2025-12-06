@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentValidation;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Http;
 using System.Text.RegularExpressions;
 
 namespace CourseManagement.Application.Courses.Commands.Validator
@@ -13,19 +15,19 @@ namespace CourseManagement.Application.Courses.Commands.Validator
     {
         public static void ApplyMaterialRules<T>(
             AbstractValidator<T> validator,
-            Expression<Func<T, string>> getPath,
+            Expression<Func<T, IFormFile>> getFile,
             Expression<Func<T, bool>> getIsVideo)
         {
-            validator.When(x => !string.IsNullOrEmpty(getPath.Compile().Invoke(x).ToString()), () =>
+            validator.When(x => !string.IsNullOrEmpty(getFile.Compile().Invoke(x).ToString()), () =>
             {
-                validator.RuleFor(getPath)
-                .Must(ValidPath)
-                .WithMessage("Path must be rooted, and without any of the characters: \" \\ / < > | * ?");
+                validator.RuleFor(getFile)
+                .Must(ValidFile)
+                .WithMessage("File must not be over 100 MB size, and must have a name that is allowed by windows and between 1 and 90 characters.");
             }).Otherwise(() =>
             {
-                validator.RuleFor(getPath)
+                validator.RuleFor(getFile)
                 .NotEmpty()
-                .WithMessage("Path is required.");
+                .WithMessage("File can't be empty.");
             });
 
             validator.When(x => !string.IsNullOrEmpty(getIsVideo.Compile().Invoke(x).ToString()), () =>
@@ -41,18 +43,21 @@ namespace CourseManagement.Application.Courses.Commands.Validator
             });
         }
 
-        private static bool ValidPath(string path)
+        private static bool ValidFile(IFormFile file)
         {
-            // Detect ANY illegal character anywhere in the string
-            string pattern = @"[<>|*?\""]";
-
-            // If it contains ANY, reject
-            if (Regex.IsMatch(path, pattern))
+            if (file.Length > 100 * 1024 * 1024)
             {
                 return false;
             }
 
-            return Path.IsPathRooted(path);
+            string pattern = @"[<>|*?\""]";
+            if (file.FileName.Length < 1 || file.FileName.Length > 100 ||
+                Regex.IsMatch(file.FileName, pattern))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool ValidIsVideo(bool isVideo)
@@ -122,4 +127,32 @@ private static bool ValidPath(string path)
 
     return Path.IsPathRooted(path);
 }
+*/
+
+/*
+        ////////// The working validator for path where entered instead of files //////////
+            validator.When(x => !string.IsNullOrEmpty(getPath.Compile().Invoke(x).ToString()), () =>
+            {
+                validator.RuleFor(getPath)
+                .Must(ValidPath)
+                .WithMessage("Path must be rooted, and without any of the characters: \" \\ / < > | * ?");
+            }).Otherwise(() =>
+            {
+                validator.RuleFor(getPath)
+                .NotEmpty()
+                .WithMessage("Path is required.");
+            });
+
+        private static bool ValidPath(string path)
+        {
+            string pattern = @"[<>|*?\""]";
+
+            if (Regex.IsMatch(path, pattern))
+            {
+                return false;
+            }
+
+            //return Path.IsPathRooted(path);
+            return true;
+        }
 */

@@ -7,6 +7,7 @@ using CourseManagement.Application.Common.Interfaces;
 using MediatR;
 using ErrorOr;
 using CourseManagement.Application.Courses.Common.Dto;
+using CourseManagement.Domain.Courses;
 
 namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterial
 {
@@ -22,16 +23,43 @@ namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMater
         {
             try
             {
+                var extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
+                if (extension != ".mp4" &&
+                    extension != ".pdf")
+                {
+                    return Error.Validation(description: "Only PDF and MP4 files are allowed.");
+                }
+
+                if (extension == ".mp4" && command.isVideo == false)
+                {
+                    return Error.Validation(description: "File is a video, but you entered it wasn't.");
+                }
+
                 var course = await _coursesRepository.GetCourseWithSessionsAndSessionsMaterialsByCourseIdAsync(command.courseId);
                 if (course == null)
                 {
                     return Error.Validation(description: "Course not found.");
                 }
 
+                var courseSession = course.CheckIfCourseHasSessionBySessionId(command.sessionId);
+                if (courseSession.IsError)
+                {
+                    return courseSession.Errors;
+                }
+
+                if (courseSession.Value.Materials == null ||
+                    courseSession.Value.Materials.Count == 0 ||
+                    courseSession.Value.Materials.FirstOrDefault(m => m.Id == command.materialId) is not Material material)
+                {
+                    return Error.Validation(description: "Course session doesn't have material.");
+                }
+
+                var savedPath = await _coursesRepository.UpdateSavedCourseSessionMaterialAsync(course.Subject, courseSession.Value.Name, material.Path, command.file);
+
                 var updatedMaterial = course.UpdateCourseSessionMaterial(
                     sessionId: command.sessionId,
                     materialId: command.materialId,
-                    path: command.path,
+                    path: savedPath,
                     isVideo: command.isVideo);
 
                 if (updatedMaterial.IsError)

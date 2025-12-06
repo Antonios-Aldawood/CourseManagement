@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CourseManagement.Domain.Courses;
 using CourseManagement.Application.Courses.Common.Dto;
+using Microsoft.AspNetCore.Http;
 
 namespace CourseManagement.Application.Common.Interfaces
 {
@@ -42,5 +43,7 @@ namespace CourseManagement.Application.Common.Interfaces
         Task<List<Course>> GetCoursesWithSessionsAndSessionsMaterials();
         Task<List<Course>> GetAllCoursesWithSessionsAndMaterialsThatMatchEligibilitiesAsync(int positionId, int departmentId, int jobId);
         bool CourseSessionMaterialFileExists(Course course, string sessionName, string materialPath);
+        Task<string> SaveCourseSessionMaterialAsync(string courseSubject, string sessionName, IFormFile file);
+        Task<string> UpdateSavedCourseSessionMaterialAsync(string courseSubject, string sessionName, string oldMaterialFileName, IFormFile file);
     }
 }

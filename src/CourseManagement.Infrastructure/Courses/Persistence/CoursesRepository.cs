@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using CourseManagement.Application.Common.Interfaces;
 using CourseManagement.Infrastructure.Common.Persistence;
-using CourseManagement.Application.Courses.Common.Dto;
 using CourseManagement.Domain.Courses;
+using CourseManagement.Application.Courses.Common.Dto;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace CourseManagement.Infrastructure.Courses.Persistence
 {
@@ -369,6 +370,41 @@ namespace CourseManagement.Infrastructure.Courses.Persistence
             }
 
             return false;
+        }
+
+        public async Task<string> SaveCourseSessionMaterialAsync(string courseSubject, string sessionName, IFormFile file)
+        {
+            string directory = @"D:/Job/DDDCMS/src/CourseManagement.Infrastructure/Courses/CoursesSessionsMaterials";
+            string safeFileName = $"{courseSubject}_{sessionName}_{file.FileName}";
+            string filePath = Path.Combine(directory, safeFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return filePath;
+        }
+
+        public async Task<string> UpdateSavedCourseSessionMaterialAsync(string courseSubject, string sessionName, string oldMaterialFileName, IFormFile file)
+        {
+            string directory = @"D:/Job/DDDCMS/src/CourseManagement.Infrastructure/Courses/CoursesSessionsMaterials";
+            string oldFilePath = Path.Combine(directory, oldMaterialFileName);
+
+            if (File.Exists(oldFilePath))
+            {
+                File.Delete(oldFilePath);
+            }
+
+            string safeFileName = $"{courseSubject}_{sessionName}_{file.FileName}";
+            string newFilePath = Path.Combine(directory, safeFileName);
+
+            using (var stream = new FileStream(newFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return newFilePath;
         }
     }
 }

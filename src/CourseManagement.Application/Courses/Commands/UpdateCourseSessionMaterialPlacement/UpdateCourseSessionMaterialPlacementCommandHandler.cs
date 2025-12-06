@@ -1,13 +1,12 @@
-﻿using CourseManagement.Application.Common.Interfaces;
-using CourseManagement.Application.Courses.Common.Dto;
-using CourseManagement.Domain.Courses;
-using ErrorOr;
-using MediatR;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CourseManagement.Application.Common.Interfaces;
+using MediatR;
+using ErrorOr;
+using CourseManagement.Application.Courses.Common.Dto;
 
 namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterialPlacement
 {

@@ -164,7 +164,8 @@ namespace CourseManagement.Domain.Courses
             {
                 foreach (Material material in Materials)
                 {
-                    if (material.Path == path &&
+                    if (material != oldMaterial &&
+                        material.Path == path &&
                         material.IsVideo == isVideo)
                     {
                         return SessionErrors.MaterialAlreadyGivenToSession;
