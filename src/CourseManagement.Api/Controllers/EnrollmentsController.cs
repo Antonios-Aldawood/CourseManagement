@@ -8,6 +8,9 @@ using CourseManagement.Application.Enrollments.Queries.GetUserCourses;
 using CourseManagement.Application.Enrollments.Queries.GetCourseUsers;
 using CourseManagement.Application.Enrollments.Queries.GetOptionalEnrollmentsInEligibleCourses;
 using CourseManagement.Application.Enrollments.Queries.GetForcedEnrollmentsInEligibleCourses;
+using CourseManagement.Application.Enrollments.Queries.GetEnrollmentAttendances;
+using CourseManagement.Application.Enrollments.Queries.GetEnrollmentAttendance;
+using CourseManagement.Application.Enrollments.Commands.AddEnrollmentAttendance;
 
 namespace CourseManagement.Api.Controllers
 {
@@ -175,6 +178,102 @@ namespace CourseManagement.Api.Controllers
                             courseSubject: enrollment.CourseSubject,
                             isOptional: enrollment.IsOptional,
                             isCompleted: enrollment.IsCompleted))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPost("Attendance")]
+        public async Task<IActionResult> AddEnrollmentAttendance(AddEnrollmentAttendanceRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new AddEnrollmentAttendanceCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                trainerId: request.TrainerId,
+                enrollmentId: request.EnrollmentId,
+                courseId: request.CourseId,
+                sessionId: request.SessionId,
+                dateAttended: request.DateAttended);
+
+            var addEnrollmentAttendanceResult = await _mediator.Send(command);
+
+            return addEnrollmentAttendanceResult.Match(
+                attendance => CreatedAtAction(
+                    nameof(GetEnrollmentAttendance),
+                    new AttendanceResponse(
+                        AttendanceId: attendance.AttendanceId,
+                        EnrollmentId: attendance.EnrollmentId,
+                        UserId: attendance.UserId,
+                        UserAlias: attendance.UserAlias,
+                        SessionId: attendance.SessionId,
+                        SessionName: attendance.SessionName,
+                        SessionTrainerId: attendance.SessionTrainerId,
+                        SessionTrainerAlias: attendance.SessionTrainerAlias,
+                        CourseId: attendance.CourseId,
+                        CourseSubject: attendance.CourseSubject,
+                        DateAttended: attendance.DateAttended)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Enrollment/Attendances")]
+        public async Task<IActionResult> GetEnrollmentAttendances(int EnrollmentId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetEnrollmentAttendancesQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                enrollmentId: EnrollmentId);
+
+            var getEnrollmentAttendancesResult = await _mediator.Send(query);
+
+            return getEnrollmentAttendancesResult.Match(
+                attendances => Ok(
+                    attendances.ConvertAll(
+                        attendance => new AttendanceResponse(
+                            AttendanceId: attendance.AttendanceId,
+                            EnrollmentId: attendance.EnrollmentId,
+                            UserId: attendance.UserId,
+                            UserAlias: attendance.UserAlias,
+                            SessionId: attendance.SessionId,
+                            SessionName: attendance.SessionName,
+                            SessionTrainerId: attendance.SessionTrainerId,
+                            SessionTrainerAlias: attendance.SessionTrainerAlias,
+                            CourseId: attendance.CourseId,
+                            CourseSubject: attendance.CourseSubject,
+                            DateAttended: attendance.DateAttended))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("Enrollment/Attendance")]
+        public async Task<IActionResult> GetEnrollmentAttendance([FromQuery] int EnrollmentId, [FromQuery] int AttendanceId)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetEnrollmentAttendanceQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                enrollmentId: EnrollmentId,
+                attendanceId: AttendanceId);
+
+            var getEnrollmentAttendanceResult = await _mediator.Send(query);
+
+            return getEnrollmentAttendanceResult.Match(
+                attendance => Ok(new AttendanceResponse(
+                    AttendanceId: attendance.AttendanceId,
+                    EnrollmentId: attendance.EnrollmentId,
+                    UserId: attendance.UserId,
+                    UserAlias: attendance.UserAlias,
+                    SessionId: attendance.SessionId,
+                    SessionName: attendance.SessionName,
+                    SessionTrainerId: attendance.SessionTrainerId,
+                    SessionTrainerAlias: attendance.SessionTrainerAlias,
+                    CourseId: attendance.CourseId,
+                    CourseSubject: attendance.CourseSubject,
+                    DateAttended: attendance.DateAttended)),
                 Problem);
         }
     }

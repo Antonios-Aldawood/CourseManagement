@@ -39,6 +39,10 @@ namespace CourseManagement.Infrastructure.Attendances.Persistence
                 .WithMany()
                 .HasForeignKey(x => x.SessionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(x => x.DateAttended)
+                .IsRequired(true)
+                .HasColumnName("date_attended");
         }
     }
 }

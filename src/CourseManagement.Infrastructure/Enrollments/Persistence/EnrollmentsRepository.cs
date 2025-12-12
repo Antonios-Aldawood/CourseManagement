@@ -86,5 +86,31 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
         {
             return await _dbContext.Enrollments.ToListAsync();
         }
+
+        public async Task<List<EnrollmentWithCourseSessionsDto>> GetEnrollmentWithUserAndCourseInfo(int enrollmentId)
+        {
+            return await (from enrollment in _dbContext.Enrollments.Include(e => e.Attendances)
+                          where enrollment.Id == enrollmentId
+                          join course in _dbContext.Courses on enrollment.CourseId equals course.Id
+                          join session in _dbContext.Sessions on course.Id equals session.CourseId
+                          join user in _dbContext.Users on enrollment.UserId equals user.Id
+                          select new EnrollmentWithCourseSessionsDto
+                          {
+                              Enrollment = enrollment,
+                              CourseId = course.Id,
+                              CourseSubject = course.Subject,
+                              SessionId = session.Id,
+                              SessionName = session.Name,
+                              StartDate = session.StartDate,
+                              EndDate = session.EndDate,
+                              SessionTrainerId = session.TrainerId,
+                              SessionTrainerAlias = user.Alias,
+                              UserId = user.Id,
+                              UserAlias = user.Alias,
+
+                              AffectedId = enrollment.Id
+                          })
+                          .ToListAsync();
+        }
     }
 }

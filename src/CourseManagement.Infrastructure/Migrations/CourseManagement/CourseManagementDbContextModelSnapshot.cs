@@ -309,6 +309,10 @@ namespace CourseManagement.Infrastructure.Migrations.CourseManagement
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset>("DateAttended")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("date_attended");
+
                     b.Property<int>("EnrollmentId")
                         .HasColumnType("int")
                         .HasColumnName("enrollment_id");

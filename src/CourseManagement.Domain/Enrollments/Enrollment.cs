@@ -88,6 +88,32 @@ namespace CourseManagement.Domain.Enrollments
 
             return this;
         }
+
+        public ErrorOr<Attendance> AddEnrollmentAttendance(
+            int sessionId,
+            DateTimeOffset dateAttended)
+        {
+            if (Attendances != null &&
+                Attendances.Count != 0 &&
+                Attendances.Any(a => a.EnrollmentId == Id && a.SessionId == sessionId))
+            {
+                return EnrollmentErrors.EnrollmentAlreadyHasAttendance;
+            }
+
+            var attendance = Attendance.CreateAttendance(
+                enrollmentId: Id,
+                sessionId: sessionId,
+                dateAttended: dateAttended);
+
+            if (attendance.IsError)
+            {
+                return attendance.Errors;
+            }
+
+            Attendances?.Add(attendance.Value);
+
+            return attendance.Value;
+        }
     }
 }
 

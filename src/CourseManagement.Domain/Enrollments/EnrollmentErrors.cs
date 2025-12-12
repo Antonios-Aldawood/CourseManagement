@@ -12,6 +12,10 @@ namespace CourseManagement.Domain.Enrollments
         public static readonly Error IdCannotBeEqualToNorBelowZero = Error.Validation(
             "Enrollment.IdCannotBeEqualToNorBelowZero",
             "Id can not be equal to, nor lesser than, zero.");
+
+        public static readonly Error EnrollmentAlreadyHasAttendance = Error.Validation(
+            "Enrollment.EnrollmentAlreadyHasAttendance",
+            "Attendance already been signed in this enrollment.");
     }
 }
 

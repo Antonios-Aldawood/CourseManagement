@@ -12,13 +12,16 @@ namespace CourseManagement.Domain.Enrollments
         public int Id { get; set; }
         public int EnrollmentId { get; set; }
         public int SessionId { get; set; }
+        public DateTimeOffset DateAttended { get; set; }
 
         private Attendance(
             int enrollmentId,
-            int sessionId)
+            int sessionId,
+            DateTimeOffset dateAttended)
         {
             EnrollmentId = enrollmentId;
             SessionId = sessionId;
+            DateAttended = dateAttended;
         }
 
         private ErrorOr<Success> CheckIfAttendanceIsValid()
@@ -29,16 +32,23 @@ namespace CourseManagement.Domain.Enrollments
                 return AttendanceErrors.IdCannotBeEqualToNorBelowZero;
             }
 
+            if (DateAttended > DateTimeOffset.UtcNow)
+            {
+                return AttendanceErrors.DateAttendedCanNotBeInTheFuture;
+            }
+
             return Result.Success;
         }
 
-        internal ErrorOr<Attendance> CreateAttendance(
+        internal static ErrorOr<Attendance> CreateAttendance(
             int enrollmentId,
-            int sessionId)
+            int sessionId,
+            DateTimeOffset dateAttended)
         {
             var attendance = new Attendance(
                 enrollmentId: enrollmentId,
-                sessionId: sessionId);
+                sessionId: sessionId,
+                dateAttended: dateAttended);
 
             if (attendance.CheckIfAttendanceIsValid() != Result.Success)
             {
