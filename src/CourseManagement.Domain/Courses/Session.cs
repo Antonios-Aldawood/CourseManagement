@@ -123,10 +123,15 @@ namespace CourseManagement.Domain.Courses
                     return SessionErrors.SessionCanNotHaveMoreThanFourMaterials;
                 }
 
+                StringComparer comparer = OperatingSystem.IsWindows()
+                    ? StringComparer.OrdinalIgnoreCase
+                    : StringComparer.Ordinal;
+
                 foreach (Material material in Materials)
                 {
-                    if (material.Path == path &&
-                        material.IsVideo == isVideo)
+                    if (comparer.Equals(
+                        Path.GetFullPath(material.Path),
+                        Path.GetFullPath(path)))
                     {
                         return SessionErrors.MaterialAlreadyGivenToSession;
                     }
@@ -344,4 +349,17 @@ namespace CourseManagement.Domain.Courses
 
             return Result.Success;
         }
+
+    ////In CreateMaterial in the if (Materials != null) and in the foreach (Material material in Materials) loop////
+                    if (material.Path.Trim().Normalize().ReplaceLineEndings().ToLower() == path.Trim().Normalize().ReplaceLineEndings().ToLower() &&
+                        material.IsVideo == isVideo)
+                    {
+                        return SessionErrors.MaterialAlreadyGivenToSession;
+                    }
+                                                        //////// OR ////////
+                    if (material.Path == path &&
+                        material.IsVideo == isVideo)
+                    {
+                        return SessionErrors.MaterialAlreadyGivenToSession;
+                    }
 */

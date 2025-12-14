@@ -7,6 +7,7 @@ using CourseManagement.Application.Common.Interfaces;
 using MediatR;
 using ErrorOr;
 using CourseManagement.Application.Courses.Common.Dto;
+using CourseManagement.Application.Courses.Commands.Validator;
 
 namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
 {
@@ -22,17 +23,23 @@ namespace CourseManagement.Application.Courses.Commands.AddCourseSessionMaterial
         {
             try
             {
-                //var extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
-                //if (extension != ".mp4" &&
-                //    extension != ".pdf")
-                //{
-                //    return Error.Validation(description: "Only PDF and MP4 files are allowed.");
-                //}
+                string? extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
+                if (extension != ".mp4" &&
+                    extension != ".pdf")
+                {
+                    return Error.Validation(description: "Only PDF and MP4 files are allowed.");
+                }
 
-                //if (extension == ".mp4" && command.isVideo == false)
-                //{
-                //    return Error.Validation(description: "File is a video, but you entered it wasn't.");
-                //}
+                bool isFileFormatValidByBytes = await MaterialValidatorRules.ValidFileAsync(command.file, extension);
+                if (isFileFormatValidByBytes == false)
+                {
+                    return Error.Validation(description: "File content does not match its extension.");
+                }
+
+                if (extension == ".mp4" && command.isVideo == false)
+                {
+                    return Error.Validation(description: "File is a video, but you entered it wasn't.");
+                }
 
                 var course = await _coursesRepository.GetCourseWithSessionsAndSessionsMaterialsByCourseIdAsync(command.courseId);
                 if (course == null)

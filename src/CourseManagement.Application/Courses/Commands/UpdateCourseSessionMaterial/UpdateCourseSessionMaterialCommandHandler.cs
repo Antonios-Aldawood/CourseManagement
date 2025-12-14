@@ -1,13 +1,14 @@
-﻿using System;
+﻿using CourseManagement.Application.Common.Interfaces;
+using CourseManagement.Application.Courses.Commands.Validator;
+using CourseManagement.Application.Courses.Common.Dto;
+using CourseManagement.Domain.Courses;
+using ErrorOr;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CourseManagement.Application.Common.Interfaces;
-using MediatR;
-using ErrorOr;
-using CourseManagement.Application.Courses.Common.Dto;
-using CourseManagement.Domain.Courses;
 
 namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMaterial
 {
@@ -23,11 +24,17 @@ namespace CourseManagement.Application.Courses.Commands.UpdateCourseSessionMater
         {
             try
             {
-                var extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
+                string? extension = Path.GetExtension(command.file.FileName).ToLowerInvariant();
                 if (extension != ".mp4" &&
                     extension != ".pdf")
                 {
                     return Error.Validation(description: "Only PDF and MP4 files are allowed.");
+                }
+
+                bool isFileFormatValidByBytes = await MaterialValidatorRules.ValidFileAsync(command.file, extension);
+                if (isFileFormatValidByBytes == false)
+                {
+                    return Error.Validation(description: "File content does not match its extension.");
                 }
 
                 if (extension == ".mp4" && command.isVideo == false)

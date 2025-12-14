@@ -45,6 +45,11 @@ namespace CourseManagement.Application.Courses.Commands.Validator
 
         private static bool ValidFile(IFormFile file)
         {
+            if (file == null || file.Length == 0)
+            {
+                return false;
+            }
+
             if (file.Length > 100 * 1024 * 1024)
             {
                 return false;
@@ -58,6 +63,59 @@ namespace CourseManagement.Application.Courses.Commands.Validator
             }
 
             return true;
+        }
+
+        public static async Task<bool> ValidFileAsync(IFormFile file, string extension)
+        {
+            Dictionary<string, List<byte[]>> fileSignatures = new()
+            {
+                // PDF: %PDF-
+                [".pdf"] = new List<byte[]>
+                {
+                    new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D }
+                },
+
+                // MP4: ftyp
+                [".mp4"] = new List<byte[]>
+                {
+                    new byte[] { 0x66, 0x74, 0x79, 0x70 } // "ftyp"
+                }
+            };
+
+            if (fileSignatures.ContainsKey(extension) == false)
+            {
+                return false;
+            }
+
+            using Stream stream = file.OpenReadStream();
+
+            // Read enough bytes for all known signatures
+            int maxSignatureLength = fileSignatures[extension].Max(s => s.Length) + 4;
+            byte[] buffer = new byte[maxSignatureLength];
+
+            //await stream.ReadAsync(buffer, 0, buffer.Length);
+            await stream.ReadExactlyAsync(buffer);
+
+            foreach (byte[] signature in fileSignatures[extension])
+            {
+                if (extension == ".mp4")
+                {
+                    // MP4 signature is offset (ftyp starts at byte 4)
+                    if (buffer.Skip(4).Take(signature.Length).SequenceEqual(signature))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (buffer.Take(signature.Length).SequenceEqual(signature))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool ValidIsVideo(bool isVideo)
