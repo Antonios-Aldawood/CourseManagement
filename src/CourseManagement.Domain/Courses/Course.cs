@@ -104,6 +104,11 @@ namespace CourseManagement.Domain.Courses
         {
             if (Sessions is not null)
             {
+                if (Sessions.Count >= 12)
+                {
+                    return CourseErrors.CourseSessionsReachedMaximumAmount;
+                }
+
                 foreach (Session session in Sessions)
                 {
                     if (

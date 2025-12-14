@@ -25,6 +25,10 @@ namespace CourseManagement.Domain.Courses
             "Course.SessionTimeFrameConflictsWithOtherSessions",
             "Session timeframe conflicts with other sessions.");
 
+        public static readonly Error CourseSessionsReachedMaximumAmount = Error.Validation(
+            "Course.CourseSessionsReachedMaximumAmount",
+            "Course can not have more than 12 sessions.");
+
         public static readonly Error SessionNotFound = Error.Validation(
             "Course.SessionNotFound",
             "Course does not have session.");
