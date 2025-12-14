@@ -17,7 +17,7 @@ namespace CourseManagement.Application.Enrollments.Commands.Validator
             validator.When(x => !string.IsNullOrEmpty(getDateAttended.Compile().Invoke(x).ToString()), () =>
             {
                 validator.RuleFor(getDateAttended)
-                .GreaterThan(DateTimeOffset.UtcNow)
+                .LessThan(DateTimeOffset.UtcNow)
                 .WithMessage("Date attended can not be in the future.");
             }).Otherwise(() =>
             {

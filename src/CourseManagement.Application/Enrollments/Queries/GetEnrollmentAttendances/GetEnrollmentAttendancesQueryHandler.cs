@@ -21,7 +21,7 @@ namespace CourseManagement.Application.Enrollments.Queries.GetEnrollmentAttendan
             try
             {
                 var enrollment = await _enrollmentsRepository.GetEnrollmentWithUserAndCourseInfo(query.enrollmentId);
-                if (enrollment == null)
+                if (enrollment.Count == 0)
                 {
                     return Error.Validation(description: "Enrollment not found.");
                 }

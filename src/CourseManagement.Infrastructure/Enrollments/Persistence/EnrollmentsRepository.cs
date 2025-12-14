@@ -93,6 +93,7 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
                           where enrollment.Id == enrollmentId
                           join course in _dbContext.Courses on enrollment.CourseId equals course.Id
                           join session in _dbContext.Sessions on course.Id equals session.CourseId
+                          join trainer in _dbContext.Users on session.TrainerId equals trainer.Id
                           join user in _dbContext.Users on enrollment.UserId equals user.Id
                           select new EnrollmentWithCourseSessionsDto
                           {
@@ -104,7 +105,7 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
                               StartDate = session.StartDate,
                               EndDate = session.EndDate,
                               SessionTrainerId = session.TrainerId,
-                              SessionTrainerAlias = user.Alias,
+                              SessionTrainerAlias = trainer.Alias,
                               UserId = user.Id,
                               UserAlias = user.Alias,
 
