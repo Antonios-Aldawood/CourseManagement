@@ -12,15 +12,24 @@ using CourseManagement.Domain.Courses;
 namespace CourseManagement.Application.Courses.Queries.GetAllCourses
 {
     public class GetAllCoursesQueryHandler(
-        ICoursesRepository coursesRepository
+        ICoursesRepository coursesRepository,
+        IRedisCacheService redisCacheService
         ) : IRequestHandler<GetAllCoursesQuery, ErrorOr<List<CourseDto>>>
     {
         private readonly ICoursesRepository _coursesRepository = coursesRepository;
+        private readonly IRedisCacheService _redisCacheService = redisCacheService;
 
         public async Task<ErrorOr<List<CourseDto>>> Handle(GetAllCoursesQuery query, CancellationToken cancellationToken)
         {
             try
             {
+                var cachedCourses = await _redisCacheService.GetData<List<CourseDto>>("Courses");
+                if (cachedCourses != null &&
+                    cachedCourses.Count != 0)
+                {
+                    return cachedCourses;
+                }
+
                 List<Course> courses = await _coursesRepository.GetAllCoursesAsync();
                 List<CourseDto> courseResponse = [];
 
@@ -30,6 +39,8 @@ namespace CourseManagement.Application.Courses.Queries.GetAllCourses
 
                     courseResponse.Add(dto);
                 }
+
+                await _redisCacheService.SetData("Courses", courseResponse);
 
                 return courseResponse;
             }

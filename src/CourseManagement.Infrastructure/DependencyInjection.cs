@@ -20,6 +20,7 @@ using CourseManagement.Infrastructure.Enrollments.Persistence;
 using CourseManagement.Infrastructure.RefreshTokens.Persistence;
 using CourseManagement.Infrastructure.Logs.Persistence;
 using CourseManagement.Infrastructure.Email;
+using CourseManagement.Infrastructure.Caching;
 
 namespace CourseManagement.Infrastructure
 {
@@ -54,6 +55,7 @@ namespace CourseManagement.Infrastructure
             services.AddScoped<IEnrollmentsRepository, EnrollmentsRepository>();
             services.AddScoped<IRefreshTokensRepository, RefreshTokensRepository>();
             services.AddScoped<ILogsRepository, LogsRepository>();
+            services.AddScoped<IRedisCacheService, RedisCacheService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<IUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<CourseManagementDbContext>());
             services.AddScoped<ILogUnitOfWork>(serviceProvider => serviceProvider.GetRequiredService<LoggingDbContext>());

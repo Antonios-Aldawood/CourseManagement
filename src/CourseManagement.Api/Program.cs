@@ -41,6 +41,12 @@ try
             .AddApplication()
             .AddInfrastructure();
 
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration["RedisURL"];
+            options.InstanceName = "CourseManagement";
+        });
+
         //var MyAllowSpecificOrigins = "http://localhost:13657/";
 
         builder.Services.AddCors(options =>
