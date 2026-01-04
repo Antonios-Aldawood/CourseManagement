@@ -19,6 +19,7 @@ namespace CourseManagement.Application.Common.Interfaces
         Task<List<EnrollmentDto>> GetEnrollmentsForUser(int userId);
         Task<List<EnrollmentDto>> GetEnrollmentsForCourse(int courseId);
         Task<List<Enrollment>> GetAllAsync();
+        Task<int> GetEnrollmentsCountForCourse(int courseId);
         Task<List<EnrollmentWithCourseSessionsDto>> GetEnrollmentWithUserAndCourseInfo(int enrollmentId);
     }
 }

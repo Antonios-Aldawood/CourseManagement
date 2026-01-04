@@ -60,6 +60,12 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateOptionalEnroll
                     return Error.Validation(description: "Enrollment for this user to this course already exists.");
                 }
 
+                int enrollmentsForCourseCount = await _enrollmentsRepository.GetEnrollmentsCountForCourse(course.Id);
+                if (enrollmentsForCourseCount + 1 > (course.Sessions?.Sum(s => s.Seats) ?? int.MaxValue))
+                {
+                    return Error.Validation(description: "Course sessions seats insufficient.");
+                }
+
                 // Check if new course sessions conflict with sessions of already enrolled courses.
                 var userCourses = await _coursesRepository.GetCoursesForUserAsync(command.userId);
                 var userCoursesSessions = userCourses?

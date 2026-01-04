@@ -52,6 +52,12 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateForcedEnrollme
                     return Error.Validation(description: "Enrollment for this user to this course, already exists.");
                 }
 
+                int enrollmentsForCourseCount = await _enrollmentsRepository.GetEnrollmentsCountForCourse(course.Id);
+                if (enrollmentsForCourseCount + 1 > (course.Sessions?.Sum(s => s.Seats) ?? int.MaxValue))
+                {
+                    return Error.Validation(description: "Course sessions seats insufficient.");
+                }
+
                 // Check if new course sessions conflict with sessions of already enrolled courses.
                 var userCourses = await _coursesRepository.GetCoursesForUserAsync(command.userId);
                 var userCoursesSessions = userCourses?
@@ -169,5 +175,18 @@ using CourseManagement.Domain.Courses;
                         return Error.Validation(description: "User new course's sessions conflict with user current courses sessions.");
                     }
                 }
-        // Finished sessions conflict checking. 
+        // Finished sessions conflict checking.
+
+                        ////// Would exist just before the two checks it validates //////
+/// Could replace two database visits, but will be more costly because of loading the whole list into memory ///
+                var enrollments = await _enrollmentsRepository.GetAllAsync();
+                if (enrollments.Any(e => e.UserId == user.JobId && e.CourseId == course.Id))
+                {
+                    return Error.Validation(description: "Enrollment for this user to this course, already exists.");
+                }
+
+                if (enrollments.Where(e => e.CourseId == course.Id).Count() > (course.Sessions?.Sum(s => s.Seats) ?? int.MaxValue))
+                {
+                    return Error.Validation(description: "Course sessions seats insufficient.");
+                }
 */

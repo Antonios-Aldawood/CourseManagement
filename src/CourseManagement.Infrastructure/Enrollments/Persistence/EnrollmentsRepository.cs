@@ -87,6 +87,14 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
             return await _dbContext.Enrollments.ToListAsync();
         }
 
+        public async Task<int> GetEnrollmentsCountForCourse(int courseId)
+        {
+            return await _dbContext.Enrollments
+                .AsNoTracking()
+                .Where(e => e.CourseId == courseId)
+                .CountAsync();
+        }
+
         public async Task<List<EnrollmentWithCourseSessionsDto>> GetEnrollmentWithUserAndCourseInfo(int enrollmentId)
         {
             return await (from enrollment in _dbContext.Enrollments.Include(e => e.Attendances)
