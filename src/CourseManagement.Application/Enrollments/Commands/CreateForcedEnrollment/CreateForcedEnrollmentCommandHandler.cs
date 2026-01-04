@@ -82,7 +82,8 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateForcedEnrollme
                 var enrollment = Enrollment.CreateUserCourseEnrollment(
                     userId: user.UserId,
                     courseId: course.Id,
-                    isOptional: false);
+                    isOptional: false,
+                    isConfirmed: true);
 
                 if (enrollment.IsError)
                 {
@@ -102,6 +103,7 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateForcedEnrollme
                     CourseSubject = course.Subject,
                     IsOptional = enrollment.Value.IsOptional,
                     IsCompleted = enrollment.Value.IsCompleted,
+                    IsConfirmed = enrollment.Value.IsConfirmed,
 
                     AffectedId = enrollment.Value.Id
                 };

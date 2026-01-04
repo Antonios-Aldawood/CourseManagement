@@ -10,9 +10,9 @@ namespace CourseManagement.Domain.Enrollments
     public class Attendance
     {
         public int Id { get; set; }
-        public int EnrollmentId { get; set; }
-        public int SessionId { get; set; }
-        public DateTimeOffset DateAttended { get; set; }
+        public int EnrollmentId { get; private set; }
+        public int SessionId { get; private set; }
+        public DateTimeOffset DateAttended { get; private set; }
 
         private Attendance(
             int enrollmentId,

@@ -90,7 +90,8 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateOptionalEnroll
                 var enrollment = Enrollment.CreateUserCourseEnrollment(
                     userId: user.UserId,
                     courseId: course.Id,
-                    isOptional: true);
+                    isOptional: true,
+                    isConfirmed: false);
 
                 if (enrollment.IsError)
                 {
@@ -110,6 +111,7 @@ namespace CourseManagement.Application.Enrollments.Commands.CreateOptionalEnroll
                     CourseSubject = course.Subject,
                     IsOptional = enrollment.Value.IsOptional,
                     IsCompleted = enrollment.Value.IsCompleted,
+                    IsConfirmed = enrollment.Value.IsConfirmed,
 
                     AffectedId = enrollment.Value.Id
                 };

@@ -16,6 +16,7 @@ namespace CourseManagement.Application.Enrollments.Common.Dto
         public required string CourseSubject { get; set; }
         public required bool IsOptional { get; set; }
         public required bool IsCompleted { get; set; }
+        public required bool IsConfirmed { get; set; }
 
         public int AffectedId { get; set; }
     }

@@ -41,6 +41,21 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
         {
             return await _dbContext.Enrollments.FirstOrDefaultAsync(e => e.Id == enrollmentId);
         }
+        public async Task<EnrollmentWithUserAndCourseDto?> GetEnrollmentWithUserAndCourseNamesByIdAsync(int enrollmentId)
+        {
+            return await (from enrollment in _dbContext.Enrollments
+                          where enrollment.Id == enrollmentId
+                          join user in _dbContext.Users on enrollment.UserId equals user.Id
+                          join course in _dbContext.Courses on enrollment.CourseId equals course.Id
+                          select new EnrollmentWithUserAndCourseDto
+                          {
+                              Enrollment = enrollment,
+                              UserAlias = user.Alias,
+                              CourseSubject = course.Subject,
+
+                              AffectedId = enrollment.Id
+                          }).FirstOrDefaultAsync();
+        }
 
         public async Task<List<EnrollmentDto>> GetEnrollmentsForUser(int userId)
         {
@@ -57,6 +72,7 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
                               CourseSubject = course.Subject,
                               IsOptional = enrollment.IsOptional,
                               IsCompleted = enrollment.IsCompleted,
+                              IsConfirmed = enrollment.IsConfirmed,
 
                               AffectedId = enrollment.Id
                           }).ToListAsync();
@@ -77,8 +93,31 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
                               CourseSubject = course.Subject,
                               IsOptional = enrollment.IsOptional,
                               IsCompleted = enrollment.IsCompleted,
+                              IsConfirmed = enrollment.IsConfirmed,
 
                               AffectedId = enrollment.Id
+                          }).ToListAsync();
+        }
+
+        public async Task<List<EnrollmentDto>> GetAllEnrollmentsToBeConfirmed()
+        {
+            return await (from enrollment in _dbContext.Enrollments
+                          where enrollment.IsConfirmed == false
+                          join user in _dbContext.Users on enrollment.UserId equals user.Id
+                          join course in _dbContext.Courses on enrollment.CourseId equals course.Id
+                          select new EnrollmentDto
+                          {
+                              EnrollmentId = enrollment.Id,
+                              UserId = enrollment.UserId,
+                              UserAlias = user.Alias,
+                              CourseId = enrollment.CourseId,
+                              CourseSubject = course.Subject,
+                              IsOptional = enrollment.IsOptional,
+                              IsCompleted = enrollment.IsCompleted,
+                              IsConfirmed = enrollment.IsConfirmed,
+
+                              AffectedId = enrollment.Id
+
                           }).ToListAsync();
         }
 

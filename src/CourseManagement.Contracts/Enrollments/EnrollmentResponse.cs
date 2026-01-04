@@ -13,5 +13,6 @@ namespace CourseManagement.Contracts.Enrollments
         int courseId,
         string courseSubject,
         bool isOptional,
-        bool isCompleted);
+        bool isCompleted,
+        bool isConfirmed);
 }

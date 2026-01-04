@@ -10,20 +10,28 @@ namespace CourseManagement.Domain.Enrollments
     public class Enrollment
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public int CourseId { get; set; }
-        public bool IsOptional { get; set; } = false;
-        public bool IsCompleted { get; set; } = false;
-        public List<Attendance>? Attendances { get; set; }
+        public int UserId { get; private set; }
+        public int CourseId { get; private set; }
+        public bool IsOptional { get; private set; } = false;
+        public bool IsCompleted { get; private set; } = false;
+        public bool IsConfirmed { get; private set; }
+        public List<Attendance>? Attendances { get; private set; }
 
         private Enrollment(
             int userId,
             int courseId,
-            bool isOptional)
+            bool isOptional,
+            bool isConfirmed)
         {
             UserId = userId;
             CourseId = courseId;
             IsOptional = isOptional;
+            IsConfirmed = isConfirmed;
+        }
+
+        public void ConfirmEnrollment()
+        {
+            IsConfirmed = true;
         }
 
         private ErrorOr<Success> CheckIfUserCourseEnrollmentIsValid()
@@ -53,12 +61,14 @@ namespace CourseManagement.Domain.Enrollments
         public static ErrorOr<Enrollment> CreateUserCourseEnrollment(
             int userId,
             int courseId,
-            bool isOptional)
+            bool isOptional,
+            bool isConfirmed)
         {
             var userCourse = new Enrollment(
                 userId: userId,
                 courseId: courseId,
-                isOptional: isOptional);
+                isOptional: isOptional,
+                isConfirmed: isConfirmed);
 
             if (userCourse.CheckIfUserCourseEnrollmentIsValid() != Result.Success)
             {

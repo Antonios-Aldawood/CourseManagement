@@ -11,6 +11,8 @@ using CourseManagement.Application.Enrollments.Queries.GetForcedEnrollmentsInEli
 using CourseManagement.Application.Enrollments.Queries.GetEnrollmentAttendances;
 using CourseManagement.Application.Enrollments.Queries.GetEnrollmentAttendance;
 using CourseManagement.Application.Enrollments.Commands.AddEnrollmentAttendance;
+using CourseManagement.Application.Enrollments.Queries.GetEnrollmentsToConfirm;
+using CourseManagement.Application.Enrollments.Commands.ConfirmOptionalEnrollment;
 
 namespace CourseManagement.Api.Controllers
 {
@@ -41,7 +43,8 @@ namespace CourseManagement.Api.Controllers
                         courseId: enrollment.CourseId,
                         courseSubject: enrollment.CourseSubject,
                         isOptional: enrollment.IsOptional,
-                        isCompleted: enrollment.IsCompleted)),
+                        isCompleted: enrollment.IsCompleted,
+                        isConfirmed: enrollment.IsConfirmed)),
                 Problem);
         }
 
@@ -69,7 +72,8 @@ namespace CourseManagement.Api.Controllers
                         courseId: enrollment.CourseId,
                         courseSubject: enrollment.CourseSubject,
                         isOptional: enrollment.IsOptional,
-                        isCompleted: enrollment.IsCompleted)),
+                        isCompleted: enrollment.IsCompleted,
+                        isConfirmed: enrollment.IsConfirmed)),
                 Problem);
         }
 
@@ -96,7 +100,8 @@ namespace CourseManagement.Api.Controllers
                             courseId: enrollment.CourseId,
                             courseSubject: enrollment.CourseSubject,
                             isOptional: enrollment.IsOptional,
-                            isCompleted: enrollment.IsCompleted))),
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed))),
                 Problem);
         }
 
@@ -123,7 +128,8 @@ namespace CourseManagement.Api.Controllers
                             courseId: enrollment.CourseId,
                             courseSubject: enrollment.CourseSubject,
                             isOptional: enrollment.IsOptional,
-                            isCompleted: enrollment.IsCompleted))),
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed))),
                 Problem);
         }
 
@@ -150,7 +156,8 @@ namespace CourseManagement.Api.Controllers
                             courseId: enrollment.CourseId,
                             courseSubject: enrollment.CourseSubject,
                             isOptional: enrollment.IsOptional,
-                            isCompleted: enrollment.IsCompleted))),
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed))),
                 Problem);
         }
 
@@ -177,7 +184,8 @@ namespace CourseManagement.Api.Controllers
                             courseId: enrollment.CourseId,
                             courseSubject: enrollment.CourseSubject,
                             isOptional: enrollment.IsOptional,
-                            isCompleted: enrollment.IsCompleted))),
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed))),
                 Problem);
         }
 
@@ -274,6 +282,61 @@ namespace CourseManagement.Api.Controllers
                     CourseId: attendance.CourseId,
                     CourseSubject: attendance.CourseSubject,
                     DateAttended: attendance.DateAttended)),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpGet("ToBeConfirmed")]
+        public async Task<IActionResult> GetEnrollmentsToBeConfirmed()
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var query = new GetEnrollmentsToConfirmQuery(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary);
+
+            var getEnrollmentsToBeConfirmedResult = await _mediator.Send(query);
+
+            return getEnrollmentsToBeConfirmedResult.Match(
+                enrollments => Ok(
+                    enrollments.ConvertAll(
+                        enrollment => new EnrollmentResponse(
+                            enrollmentId: enrollment.EnrollmentId,
+                            userId: enrollment.UserId,
+                            userAlias: enrollment.UserAlias,
+                            courseId: enrollment.CourseId,
+                            courseSubject: enrollment.CourseSubject,
+                            isOptional: enrollment.IsOptional,
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed))),
+                Problem);
+        }
+
+        [Authorize]
+        [HttpPut("Confirm")]
+        public async Task<IActionResult> ConfirmOptionalEnrollment(ConfirmEnrollmentRequest request)
+        {
+            var headersDictionary = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+
+            var command = new ConfirmOptionalEnrollmentCommand(
+                ipAddress: GetClientIp(),
+                headers: headersDictionary,
+                enrollmentId: request.EnrollmentId);
+
+            var confirmOptionalEnrollmentResult = await _mediator.Send(command);
+
+            return confirmOptionalEnrollmentResult.Match(
+                enrollment => CreatedAtAction(
+                    nameof(ConfirmOptionalEnrollment),
+                    new EnrollmentResponse(
+                            enrollmentId: enrollment.EnrollmentId,
+                            userId: enrollment.UserId,
+                            userAlias: enrollment.UserAlias,
+                            courseId: enrollment.CourseId,
+                            courseSubject: enrollment.CourseSubject,
+                            isOptional: enrollment.IsOptional,
+                            isCompleted: enrollment.IsCompleted,
+                            isConfirmed: enrollment.IsConfirmed)),
                 Problem);
         }
     }

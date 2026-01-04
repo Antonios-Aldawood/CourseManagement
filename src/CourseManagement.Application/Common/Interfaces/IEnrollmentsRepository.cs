@@ -16,8 +16,10 @@ namespace CourseManagement.Application.Common.Interfaces
         //Can't work because there is no joining entity that certifies existence of one of the ids in it.
         //Task<bool> UserAndCourseExistAsync(int userId, int courseId);
         Task<Enrollment?> GetByIdAsync(int enrollmentId);
+        Task<EnrollmentWithUserAndCourseDto?> GetEnrollmentWithUserAndCourseNamesByIdAsync(int enrollmentId);
         Task<List<EnrollmentDto>> GetEnrollmentsForUser(int userId);
         Task<List<EnrollmentDto>> GetEnrollmentsForCourse(int courseId);
+        Task<List<EnrollmentDto>> GetAllEnrollmentsToBeConfirmed();
         Task<List<Enrollment>> GetAllAsync();
         Task<int> GetEnrollmentsCountForCourse(int courseId);
         Task<List<EnrollmentWithCourseSessionsDto>> GetEnrollmentWithUserAndCourseInfo(int enrollmentId);

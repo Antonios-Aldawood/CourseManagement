@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CourseManagement.Application.Common.Interfaces;
+using CourseManagement.Domain.Enrollments;
 
 namespace CourseManagement.Application.Enrollments.Common.Dto
 {
-    public record EnrollmentAvailabilityForCourseDto : IHasAffectedIds
+    public record EnrollmentWithUserAndCourseDto : IHasAffectedIds
     {
-        public required int EnrollmentId { get; set; }
-        public required int UserId { get; set; }
-        public required int CourseId { get; set; }
+        public required Enrollment Enrollment { get; set; }
+        public required string UserAlias { get; set; }
+        public required string CourseSubject { get; set; }
 
         public int AffectedId { get; set; }
     }
