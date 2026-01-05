@@ -35,6 +35,11 @@ namespace CourseManagement.Application.Enrollments.Commands.AddEnrollmentAttenda
                     return Error.Validation(description: "Enrollment not found.");
                 }
 
+                if (enrollment.First().Enrollment.IsConfirmed == false)
+                {
+                    return Error.Validation(description: "Can't attend this course's sessions because enrollment hasn't been confirmed.");
+                }
+
                 var courseInfo = enrollment.FirstOrDefault(e => e.CourseId == command.courseId);
                 if (courseInfo == null)
                 {
