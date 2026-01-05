@@ -81,9 +81,9 @@ namespace CourseManagement.Infrastructure.Enrollments.Persistence
         public async Task<List<EnrollmentDto>> GetEnrollmentsForCourse(int courseId)
         {
             return await (from enrollment in _dbContext.Enrollments
+                          where enrollment.CourseId == courseId && enrollment.IsConfirmed == true
                           join course in _dbContext.Courses on enrollment.CourseId equals course.Id
                           join user in _dbContext.Users on enrollment.UserId equals user.Id
-                          where enrollment.CourseId == courseId
                           select new EnrollmentDto
                           {
                               EnrollmentId = enrollment.Id,
