@@ -59,6 +59,12 @@ namespace CourseManagement.Application.Courses.Queries.GetRecommendedCourses
 
                 Dictionary<int, double> courseScoreMap = [];
 
+                /*
+                var userSkillMap = userJobSkills
+                    .GroupBy(s => s.SkillName)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+                */
+
                 foreach (var courseSkill in courseSkills)
                 {
                     // Find matching user skills for this course skill
