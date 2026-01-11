@@ -15,16 +15,25 @@ namespace CourseManagement.Application.Courses.Queries.GetRecommendedCourses
 {
     public class GetRecommendedCoursesQueryHandler(
         IUsersRepository usersRepository,
-        ICoursesRepository coursesRepository
+        ICoursesRepository coursesRepository,
+        IRedisCacheService redisCacheService
         ) : IRequestHandler<GetRecommendedCoursesQuery, ErrorOr<List<CourseDto>>>
     {
         private readonly IUsersRepository _usersRepository = usersRepository;
         private readonly ICoursesRepository _coursesRepository = coursesRepository;
+        private readonly IRedisCacheService _redisCacheService = redisCacheService;
 
         public async Task<ErrorOr<List<CourseDto>>> Handle(GetRecommendedCoursesQuery query, CancellationToken cancellationToken)
         {
             try
             {
+                var cachedRecommendations = await _redisCacheService.GetData<List<CourseDto>>($"{query.alias} recommendations");
+                if (cachedRecommendations != null &&
+                    cachedRecommendations.Count > 0)
+                {
+                    return cachedRecommendations;
+                }
+
                 List<CourseDto> coursesResponse = [];
 
                 List<UserJobSkillsDto> userJobSkills = await _usersRepository.GetUserWithJobAndJobSkillsAsync(query.alias);
@@ -104,6 +113,8 @@ namespace CourseManagement.Application.Courses.Queries.GetRecommendedCourses
                         subject: c.Subject,
                         description: c.Description)
                 ).ToList();
+
+                await _redisCacheService.SetData($"{query.alias} recommendations", coursesResponse);
 
                 return coursesResponse;
             }
