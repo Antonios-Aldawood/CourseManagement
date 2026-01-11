@@ -20,6 +20,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Requests", "Requests", "{02
 		Requests.http = Requests.http
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2BDE0F0D-59F9-410D-81C1-F91DA6948DEE}"
+	ProjectSection(SolutionItems) = preProject
+		Screenshot (9753).png = Screenshot (9753).png
+		Screenshot (9754).png = Screenshot (9754).png
+		Screenshot (9755).png = Screenshot (9755).png
+		Screenshot (9756).png = Screenshot (9756).png
+		Screenshot (9757).png = Screenshot (9757).png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
